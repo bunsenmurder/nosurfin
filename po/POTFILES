@@ -1,0 +1,7 @@
+data/com.github.bunsermuder.NoSurfin.desktop.in
+data/com.github.bunsermuder.NoSurfin.appdata.xml.in
+data/com.github.bunsermuder.NoSurfin.gschema.xml
+src/window.ui
+src/main.py
+src/window.py
+
