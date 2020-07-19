@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 from re import compile
 
 ptrn = compile(r'^$|\s')
@@ -29,14 +29,10 @@ class ListEditor(Gtk.ApplicationWindow):
     url_list = Gtk.Template.Child()
     url_in = Gtk.Template.Child()
 
-    def __init__(self, app, name):
+    def __init__(self, app, name, path):
         super().__init__(application=app, title=name)
         self.error = False
-        # Check for data dir as specified by XDG
-        xdg_data_dir = os.path.join(GLib.get_user_data_dir(), 'nosurfin')
-        if not os.path.isdir(xdg_data_dir):
-            os.mkdir(xdg_data_dir)
-        self.file_path = os.path.join(xdg_data_dir, f'{name}.txt')
+        self.file_path = os.path.join(path, f'{name}.txt')
 
         # Initialize CSS and List Store
         self.style = Gtk.CssProvider()

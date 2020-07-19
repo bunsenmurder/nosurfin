@@ -15,21 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import gi, sys
+import gi, sys, os
 
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk, Gio, GLib, Gdk
 from collections import OrderedDict
-from os import path
 from .window import AppWindow
 from .editor import ListEditor
 from .sleep import CatchSleep
 
 python_bin = sys.executable
-current_dir = path.dirname(path.realpath(__file__))
+current_dir = os.path.dirname(os.path.realpath(__file__))
 pkexec_bin = '/usr/bin/pkexec'
-wrapper_script = path.join(current_dir, 'nosurfin.d/systemd_wrapper.py')
+wrapper_script = os.path.join(current_dir, 'nosurfin.d/systemd_wrapper.py')
 
 class Application(Gtk.Application):
     def __init__(self, *args, **kwargs):
@@ -39,6 +38,10 @@ class Application(Gtk.Application):
         #GLib.set_prgname("NoSurfin")
         self._window = None
         self._editor = None
+        # Checks for user data directory as specified by XDG
+        self.xdg_data_dir = os.path.join(GLib.get_user_data_dir(), 'nosurfin')
+        if not os.path.isdir(self.xdg_data_dir):
+            os.mkdir(self.xdg_data_dir)
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
@@ -71,7 +74,8 @@ class Application(Gtk.Application):
 
     def _create_block(self, action, time):
         block_process = Gio.Subprocess().new([
-            pkexec_bin, python_bin, wrapper_script, time], 0)
+            pkexec_bin, python_bin, wrapper_script,
+            time, self.xdg_data_dir], 0)
         block_process.wait()
         if block_process.get_if_exited:
             print(block_process.get_exit_status())
@@ -91,7 +95,7 @@ class Application(Gtk.Application):
             event = Gdk.Event.new(Gdk.EventType.DELETE)
             self._editor.emit("delete-event", event)
             self._editor.destroy()
-        self._editor = ListEditor(self, list_name)
+        self._editor = ListEditor(self, list_name, self.xdg_data_dir)
         self._editor.connect("destroy", self._list_destroy)
         self._editor.present()
 

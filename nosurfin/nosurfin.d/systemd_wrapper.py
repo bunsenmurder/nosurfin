@@ -20,19 +20,24 @@ from datetime import datetime, timedelta
 from os import path
 from subprocess import run
 # TODO: Make optional arguments that override these if specified
-# Diretory script is being run from
+#Get command line arguments
+time = sys.argv[1]
+blocklist_file = str(path.join(sys.argv[2], 'blocklist.txt'))
+ignorelist_file = str(path.join(sys.argv[2], 'ignorelist.txt'))
 current_dir = path.dirname(path.realpath(__file__))
 # Default args used to generate systemd configs, that can be overridden.
 mitm_path = '/usr/bin/mitmdump'
 filter_path = path.join(current_dir, 'filters/blocklist.py')
+blocklist_path = path.join(current_dir, 'filters/blocklist.py')
 mitm_user = 'root'
 
-# Generates mitm proxy command to start the block
+# Generate mitm proxy command to start the block
 mitm_cmd = f'{mitm_path} -s {filter_path} --mode transparent ' \
-           f'--ignore-hosts google.com:443 ' \
            f'--set block_global=false --set flow_detail=0 ' \
            f'--set console_eventlog_verbosity=error ' \
-           f'--set termlog_verbosity=error'
+           f'--set termlog_verbosity=error ' \
+           f'--set blocklist={blocklist_file} ' \
+           f'--set ignorehostlist={ignorelist_file}'
 
 # Shell scripts run by systemd
 net_setup = path.join(current_dir, 'sh_scripts/network_setup.sh')
@@ -102,6 +107,4 @@ def set_block(time):
     for cmd in systemd_cmds:
         run(cmd, shell=True)
 
-
-time = sys.argv[1]
 set_block(time)

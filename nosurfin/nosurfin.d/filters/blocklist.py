@@ -17,28 +17,47 @@
 
 """Filters urls with blocklist """
 
-from mitmproxy import http
+from mitmproxy.proxy.config import HostMatcher
 from mitmproxy.script import concurrent
+from mitmproxy import http
 from os import path
-from gi.repository import GLib
-#Paths
-current_dir = path.dirname(path.realpath(__file__))
-html_path = path.join(current_dir, 'index.html')
-blocklist_path = path.join(GLib.get_user_data_dir(), 'nosurfin/blocklist.txt')
-#blocklist_path = '/home/archbox/blocklist.txt'
-#Load block html and blocklist
+
+addresses = []
+#Find HTML Path
+html_path = path.join(path.dirname(path.realpath(__file__)), 'index.html')
+#Load block html page
 with open(html_path, "r", encoding='utf-8') as f:
     html_page = f.read()
-with open(blocklist_path, "r") as f:
-    addresses = [line.rstrip() for line in f]
+block_response = http.HTTPResponse.make(
+    200, html_page, {"Content-Type": "text/html"})
 
-#resp_pg = http.HTTPResponse.make(200, html_page, {"Content-Type": "text/html"})
-# Code for blocking logic
-@concurrent # This decorator allows concurrent blocking of packets
+def load(loader):
+    # Within this stage both the initialized server objects
+    # and custom options can be accessed early.
+    # The server object provides the check_filter attribute which holds
+    # a Host Matcher object, which can be replaced with our own
+    # HostMatcher object to avoid adding too many command line options.
+
+    if 'blocklist' in loader.master.options.deferred:
+        blocklist_path = loader.master.options.deferred.pop('blocklist')
+        if isinstance(blocklist_path, str) and True:
+            with open(blocklist_path, "r") as f:
+                for line in f:
+                    addresses.append(line.rstrip())
+    if 'ignorehostlist' in loader.master.options.deferred:
+        # TODO: Look into domain/ip validation for ignore list
+        # TODO: Add regex patterns for more efficient pattern matching
+        ignorelist_path = loader.master.options.deferred.pop('ignorehostlist')
+        if isinstance(ignorelist_path, str) and True:
+            with open(ignorelist_path, "r") as f:
+                ignore_addresses = [f'{line.rstrip()}:443' for line in f]
+                loader.master.server.config.check_filter = \
+                    HostMatcher("ignore", ignore_addresses)
+
+
+# This decorator allows concurrent blocking request interception
+@concurrent
 def request(flow):
-    #adr_list = ctx.options.addresses
-    adr_list = addresses
-    match = any(address in flow.request.pretty_url for address in adr_list)
+    match = any(address in flow.request.pretty_url for address in addresses)
     if match:
-        #flow.response = resp_pg
-        flow.response = http.HTTPResponse.make(200, html_page, {"Content-Type": "text/html"})
+        flow.response = block_response
