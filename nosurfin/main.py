@@ -84,7 +84,7 @@ class Application(Gtk.Application):
     def on_about(self, action, param):
         # self.about_dialog.set_program_name("NoSurfin: Time to get to work!")
         about_dialog = Gtk.AboutDialog(transient_for=self._window, modal=True)
-        about_dialog.set_program_name("NoSurfin: Time to get to work!")
+        about_dialog.set_program_name("NoSurfin: Take back your productivity!")
         about_dialog.present()
 
     def on_quit(self, action, param):

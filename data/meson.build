@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
   input: 'com.github.bunsermuder.NoSurfin.desktop.in',
-  output: 'com.github.bunsermuder.NoSurfin.desktop',
+  output: 'NoSurfin.desktop',
   type: 'desktop',
   po_dir: '../po',
   install: true,

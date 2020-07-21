@@ -30,7 +30,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
             <property name="action_name">app.lists</property>
-            <property name="text" translatable="yes">Add List Profiles</property>
+            <property name="text" translatable="yes">Block List</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -44,7 +44,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
             <property name="action_name">app.ignore</property>
-            <property name="text" translatable="yes">Add to Ignore Host List</property>
+            <property name="text" translatable="yes">Ignore List</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -93,9 +93,6 @@
         <property name="vhomogeneous">False</property>
         <property name="transition_type">crossfade</property>
         <property name="interpolate_size">True</property>
-        <child>
-          <placeholder/>
-        </child>
         <child>
           <placeholder/>
         </child>
