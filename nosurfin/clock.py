@@ -15,20 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, GLib, GObject, Gdk
+from gi.repository import Gtk, GLib, GObject
 
-css = b'.clock {font-size: 60px;} ' \
-      b'.colon {font-size: 60px; color: @fg_color;} ' \
-      b'spinbutton:disabled{color: @fg_color;} ' \
-      b'spinbutton > entry:disabled {border-radius: 10; border-style: none;}' \
-      b'spinbutton > button:disabled {background-color: transparent; ' \
-      b'color:transparent; border-color: transparent;} '
 def _time_form(t):
     h, remainder = divmod(t, 3600)
     m, s = divmod(remainder, 60)
     return h, m, s
 
-@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/Clock.ui')
+@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/ui/Clock.ui')
 class Timer(Gtk.Grid):
     # Set GObject things and retrieve so template objects
     __gtype_name__ = "Timer"
@@ -40,11 +34,6 @@ class Timer(Gtk.Grid):
 
     def __init__(self, time):
         super().__init__()
-        self.style = Gtk.CssProvider()
-        self.style.load_from_data(css)
-        self.screen = Gdk.Screen.get_default()
-        self.ctx = Gtk.StyleContext.add_provider_for_screen(
-            self.screen, self.style, 400)
         self.count_down(time)
 
     def count_down(self, time):

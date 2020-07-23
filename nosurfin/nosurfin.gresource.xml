@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/bunsenmurder/NoSurfin">
-    <file>Window.ui</file>
-    <file>Clock.ui</file>
-    <file>Editor.ui</file>
-    <file>Home.ui</file>
+    <file>com.github.bunsenmurder.NoSurfin.css</file>
+    <file>ui/Window.ui</file>
+    <file>ui/Clock.ui</file>
+    <file>ui/Editor.ui</file>
+    <file>ui/Home.ui</file>
   </gresource>
 </gresources>

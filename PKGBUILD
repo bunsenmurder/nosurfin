@@ -1,23 +1,26 @@
 pkgname=nosurfin
-pkgver=0.2.0
+pkgver=0.3.0
 pkgrel=1
-pkgdesc="Block distracting websites and take back your productivity"
+pkgdesc="Website blocker capable of blocking specific URLs"
 url="https://github.com/bunsenmurder/nosurfin"
 arch=('any')
 license=('GPL3')
-depends=(python-gobject mitmproxy iptables)
-makedepends=(gobject-introspection git meson appstream-glib python)
+depends=(python-gobject mitmproxy iptables gtk3)
+makedepends=(glib2 git meson appstream-glib python)
 source=("git+https://github.com/bunsenmurder/nosurfin.git")
 sha256sums=('SKIP')
 
+pkgver() {
+  cd $pkgname
+  git describe --tags | sed 's/v//g'
+}
+
 prepare() {
-  cd nosurfin
-  git submodule init
-  git submodule update
+  cd $pkgname
 }
 
 build() {
-  arch-meson nosurfin build
+  arch-meson $pkgname build
   ninja -C build
 }
 

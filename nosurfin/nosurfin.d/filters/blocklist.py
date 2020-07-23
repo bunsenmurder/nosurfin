@@ -51,6 +51,7 @@ def load(loader):
         if isinstance(ignorelist_path, str) and True:
             with open(ignorelist_path, "r") as f:
                 ignore_addresses = [f'{line.rstrip()}:443' for line in f]
+                # Patch HostMatcher object with all ignored hosts
                 loader.master.server.config.check_filter = \
                     HostMatcher("ignore", ignore_addresses)
 

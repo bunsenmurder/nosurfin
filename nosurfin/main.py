@@ -15,10 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import gi, sys, os
-
-gi.require_version('Gtk', '3.0')
-
+import sys, os
 from gi.repository import Gtk, Gio, GLib, Gdk
 from collections import OrderedDict
 from .window import AppWindow
@@ -38,10 +35,18 @@ class Application(Gtk.Application):
         #GLib.set_prgname("NoSurfin")
         self._window = None
         self._editor = None
+
         # Checks for user data directory as specified by XDG
         self.xdg_data_dir = os.path.join(GLib.get_user_data_dir(), 'nosurfin')
         if not os.path.isdir(self.xdg_data_dir):
             os.mkdir(self.xdg_data_dir)
+
+        #Define the App Style and apply it
+        style = Gtk.CssProvider()
+        style.load_from_resource('/com/github/bunsenmurder/NoSurfin/com.github.bunsenmurder.NoSurfin.css')
+        screen = Gdk.Screen.get_default()
+        ctx = Gtk.StyleContext.add_provider_for_screen(
+            screen, style, 400)
 
     def do_startup(self):
         Gtk.Application.do_startup(self)

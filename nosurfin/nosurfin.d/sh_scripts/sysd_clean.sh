@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Clean up script to uninstall 
 #Searchs for and reloads changed object
 systemctl daemon-reload

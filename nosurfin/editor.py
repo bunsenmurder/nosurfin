@@ -21,7 +21,7 @@ from re import compile
 
 ptrn = compile(r'^$|\s')
 
-@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/Editor.ui')
+@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/ui/Editor.ui')
 class ListEditor(Gtk.ApplicationWindow):
     # Set Gtype and extract some kids
     __gtype_name__ = "ListEditor"
@@ -33,11 +33,11 @@ class ListEditor(Gtk.ApplicationWindow):
         super().__init__(application=app, title=name)
         self.error = False
         self.file_path = os.path.join(path, f'{name}.txt')
-
         # Initialize CSS and List Store
         self.style = Gtk.CssProvider()
         self.listmodel = Gtk.ListStore(str)
         self.style.load_from_data(b'entry {border-color: Red;}')
+        self.url_in.get_style_context().remove_provider(self.style)
 
         # Opens and stores url list in a set to ensure unique urls
         try:

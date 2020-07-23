@@ -21,7 +21,7 @@ from .clock import Timer
 from .home import HomePage
 
 
-@Gtk.Template(resource_path="/com/github/bunsenmurder/NoSurfin/Window.ui")
+@Gtk.Template(resource_path="/com/github/bunsenmurder/NoSurfin/ui/Window.ui")
 class AppWindow(Gtk.ApplicationWindow):
     """AppWindow object
 

@@ -17,7 +17,7 @@
 
 from gi.repository import Gtk, GObject
 
-@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/Home.ui')
+@Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/ui/Home.ui')
 class HomePage(Gtk.Grid):
     __gtype_name__ = "Home"
     __gsignals__ = {'start_block': (GObject.SignalFlags.RUN_FIRST, None, (int, ))}

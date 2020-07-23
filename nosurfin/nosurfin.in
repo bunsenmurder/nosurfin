@@ -34,6 +34,7 @@ if __name__ == '__main__':
     import gi
 
     from gi.repository import Gio
+    gi.require_version('Gtk', '3.0')
     resource = Gio.Resource.load(os.path.join(pkgdatadir, 'nosurfin.gresource'))
     resource._register()
 
