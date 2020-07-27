@@ -1,24 +1,28 @@
 /* Timer Elements: Themes spin buttons to look like framed labels*/
 .clock {
   font-size: 60px;
+  font-weight: 200;
   }
 
 .colon {
   font-size: 60px;
-  color: @fg_color;
+  color: @theme_text_color;
 }
 
 spinbutton:disabled{
-  color: @fg_color;
+  color: @theme_text_color;
 }
 
 spinbutton > entry:disabled {
   border-radius: 10px;
   border-style: none;
+  background-color: @borders;
 }
 
 spinbutton > button:disabled {
   background-color: transparent;
-  color:transparent;
+  color: transparent;
   border-color: transparent;
+  /*Line below is for older gtk compatability*/
+  background-image: none;
   }

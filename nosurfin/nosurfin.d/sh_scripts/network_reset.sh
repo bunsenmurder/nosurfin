@@ -2,6 +2,7 @@
 echo 'Block Finished. Resetting Network Settings'
 
 ipv4_dis () {
+    # Disables network settings if rules have been set
     ipv4_forward=$(sysctl -n net.ipv4.conf.all.forwarding)
     ipv4_nat_80=$(iptables -t nat -L OUTPUT --line-numbers | grep "http\s.\+ports\s8080" | wc -l)
     ipv4_nat_443=$(iptables -t nat -L OUTPUT --line-numbers | grep "https\s.\+ports\s8080" | wc -l)
@@ -24,6 +25,7 @@ ipv4_dis () {
     fi
 }
 ipv6_dis () {
+    # Disables network settings if rules have been set
     ipv6_forward=$(sysctl -n net.ipv6.conf.all.forwarding)
     ipv6_nat_80=$(ip6tables -t nat -L OUTPUT --line-numbers | grep "http\s.\+ports\s8080" | wc -l)
     ipv6_nat_443=$(ip6tables -t nat -L OUTPUT --line-numbers | grep "https\s.\+ports\s8080"| wc -l)
@@ -52,10 +54,10 @@ if [ $icmp_redirect == 0 ]
 then
     sysctl -w net.ipv4.conf.all.send_redirects=1
 fi
-
+# Deletes ipv4 rules
 ipv4_dis
 # Deletes ipv6 rules if it's enabled
-if [$(sysctl -a | grep net.ipv6)]
+if [ $(sysctl -a | grep net.ipv6) ]
 then
     ipv6_dis
 fi
