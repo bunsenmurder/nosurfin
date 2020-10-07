@@ -17,19 +17,30 @@
 
 import sys
 from datetime import datetime, timedelta
-from os import path
+from os.path import join, dirname, realpath, abspath, exists
 from subprocess import run
-# TODO: Make optional arguments that override these if specified
 #Get command line arguments
 time = sys.argv[1]
-blocklist_file = str(path.join(sys.argv[2], 'blocklist.txt'))
-ignorelist_file = str(path.join(sys.argv[2], 'ignorelist.txt'))
-current_dir = path.dirname(path.realpath(__file__))
+blocklist_file = str(join(sys.argv[2], 'blocklist.txt'))
+ignorelist_file = str(join(sys.argv[2], 'ignorelist.txt'))
 # Default args used to generate systemd configs, that can be overridden.
-mitm_path = '/usr/bin/mitmdump'
-filter_path = path.join(current_dir, 'filters/blocklist.py')
-blocklist_path = path.join(current_dir, 'filters/blocklist.py')
-mitm_user = 'root'
+mitm_path = str(sys.argv[3])
+current_dir = dirname(realpath(__file__))
+filter_path = join(current_dir, 'filters/blocklist.py')
+
+# Finds the dbus service binary
+dbus_ser = 'nosurfin/nsurlmanager'
+usr_dir = abspath(join(current_dir,'../../../..'))
+m_arch = sys.implementation._multiarch
+urlmgr_path = join(usr_dir, 'lib', dbus_ser)
+# Compatiablilty for diffrent linux systems
+if not exists(urlmgr_path):
+    urlmgr_path = abspath(join(usr_dir, '../lib', dbus_ser))
+    if not exists(urlmgr_path):
+        urlmgr_path = abspath(join(usr_dir, 'lib', m_arch, dbus_ser))
+        if not exists(urlmgr_path):
+            urlmgr_path = abspath(join(usr_dir, '../lib', m_arch, dbus_ser))
+
 
 # Generate mitm proxy command to start the block
 mitm_cmd = f'{mitm_path} -s {filter_path} --mode transparent ' \
@@ -40,9 +51,9 @@ mitm_cmd = f'{mitm_path} -s {filter_path} --mode transparent ' \
            f'--set ignorehostlist={ignorelist_file}'
 
 # Shell scripts run by systemd
-net_setup = path.join(current_dir, 'sh_scripts/network_setup.sh')
-net_reset = path.join(current_dir, 'sh_scripts/network_reset.sh')
-check_block = path.join(current_dir, 'sh_scripts/check_block.sh')
+net_setup = join(current_dir, 'sh_scripts/network_setup.sh')
+net_reset = join(current_dir, 'sh_scripts/network_reset.sh')
+check_block = join(current_dir, 'sh_scripts/check_block.sh')
 
 # Cleans up timer stamp and starts systemd jobs
 systemd_cmds = ['rm -f /var/lib/systemd/timers/stamp-stop_ns_block.timer',
@@ -53,14 +64,14 @@ systemd_cmds = ['rm -f /var/lib/systemd/timers/stamp-stop_ns_block.timer',
 def _time_calc(time: int):
     end_time = datetime.now() + timedelta(minutes=int(time))
     end_time = end_time - timedelta(microseconds=end_time.microsecond)
-    print(f"Timer will complete at {end_time.strftime('%I:%M %p')}")
-    print(f"Time left {end_time - datetime.now()}")
+    #print(f"Timer will complete at {end_time.strftime('%I:%M %p')}")
+    #print(f"Time left {end_time - datetime.now()}")
     return end_time
 
 
 def _save_file(filename, file):
     dirname = '/etc/systemd/system'
-    filepath = path.join(dirname, filename)
+    filepath = join(dirname, filename)
     with open(filepath, "w+") as f:
         for line in file:
             f.write(line)
@@ -80,8 +91,9 @@ def set_block(time):
                                 '[Install]',
                                 'WantedBy=basic.target'],
         'stop_ns_block.service': ['[Unit]',
-                                  'Description=Shuts down ns_block',
+                                  'Description=Shutdown of ns_block.service',
                                   'Conflicts=ns_block.service',
+                                  'Conflicts=dbus-com.github.bunsenmurder.NSUrlManager.service',
                                   '[Service]',
                                   'Type=oneshot',
                                   f'ExecStart={net_reset}',
@@ -91,17 +103,26 @@ def set_block(time):
         'ns_block.service': ['[Unit]',
                              'Description=Run mitm with filter',
                              'RefuseManualStop=true',
+                             'Requires=dbus-com.github.bunsenmurder.NSUrlManager.service',
                              '[Service]',
                              'Type=simple',
-                             f'User={mitm_user}',
                              f'ExecStartPre={net_setup}',
                              f'ExecStart={mitm_cmd}',
                              'ExecStop=/bin/kill -2 $MAINPID',
                              '[Install]',
-                             'WantedBy=multi-user.target']}
+                             'WantedBy=multi-user.target'],
+        'dbus-com.github.bunsenmurder.NSUrlManager.service':
+                            ['[Unit]',
+                             'Description=DBus service accessed by mitmproxy.',
+                             '[Service]',
+                             'Type=dbus',
+                             'BusName=com.github.bunsenmurder.NSUrlManager',
+                             f'ExecStart={urlmgr_path}',
+                             '[Install]',
+                             'WantedBy=multi-user.target']
+                             }
 
     for k, v in file_dict.items():
-        print("Breakpoint")
         _save_file(k, v)
 
     for cmd in systemd_cmds:

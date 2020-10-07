@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="nosurfin">
+  <enum id="themes">
+    <value nick='DEFAULT' value='0'/>
+    <value nick='IMPACT' value='1'/>
+  </enum>
+  <enum id="filter">
+    <value nick='BLOCKLIST' value='0'/>
+    <value nick='WHITELIST' value='1'/>
+  </enum>
+  <enum id="python-exec">
+    <value nick='NONE' value='0'/>
+    <value nick='NATIVE' value='1'/>
+    <value nick='VIRTUAL' value='2'/>
+  </enum>
+  <schema id='com.github.bunsenmurder.NoSurfin' path='/com/github/bunsenmurder/NoSurfin/'>
+    <key name='added-dirs' type='as'>
+      <default>[]</default>
+      <summary>Directories added by the user for Cert Wizard to search.</summary>
+      <description>
+        Directories added by the user for Cert Wizard to search.
+      </description>
+    </key>
+    <key name='banned-dirs' type='as'>
+      <default>[]</default>
+      <summary>Directories banned by the user for Cert Wizard not to search.</summary>
+      <description>
+        Directories banned by the user for Cert Wizard not to search.
+      </description>
+    </key>
+    <key name='xdg-user-dirs' type='as'>
+      <default>["DIRECTORY_DESKTOP", "DIRECTORY_DOCUMENTS",
+        "DIRECTORY_DOWNLOAD", "DIRECTORY_MUSIC",
+        "DIRECTORY_PICTURES","DIRECTORY_PUBLIC_SHARE",
+        "DIRECTORY_TEMPLATES", "DIRECTORY_VIDEOS"]</default>
+      <summary>The xdg-user-dirs paths blocked from searching.</summary>
+      <description>
+        These are enum values from the GUserDirectory type for paths specified
+        by the xdg-user-dirs specification. They are blocked from being indexed
+        by the CertWizard.
+      </description>
+    </key>
+    <key name='system-cert' type='(sx)'>
+      <default>('',0)</default>
+      <summary>Is the system certificate installed and when does it expire?</summary>
+      <description>
+        Stores system certificate file key and the expiratation date of the
+        mitmproxy certificate in epoch format. The default state implies that
+        the certificate is not installed to the system.
+      </description>
+    </key>
+    <key name='python-use' enum='python-exec'>
+      <default>'NONE'</default>
+      <summary>Python environment to run backend in.</summary>
+      <description>
+        Specifies whether to use the native python or pipx to run the backend.
+        The NONE setting prevents NoSurfin from running until the appropriate
+        environment is specified.
+      </description>
+    </key>
+    <key name='filter-mode' enum='filter'>
+      <default>'BLOCKLIST'</default>
+      <summary>Filtering modes</summary>
+      <description>
+        Sets the filtering script to use with mitmproxy.
+      </description>
+    </key>
+    <key name='clock-face' enum='themes'>
+      <default>'DEFAULT'</default>
+      <summary>Clock face theme applied NoSurfin countdown clock.</summary>
+      <description>
+        Clock face theme applied NoSurfin countdown clock.
+      </description>
+    </key>
+    <key name='filter-profile' type='s'>
+      <default>''</default>
+      <summary>Profile to use with filtering mode</summary>
+      <description>
+        Profile to use with filtering mode.
+      </description>
+    </key>
+  </schema>
+</schemalist>

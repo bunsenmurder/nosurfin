@@ -33,7 +33,7 @@ class AppWindow(Gtk.ApplicationWindow):
         'save_block': (GObject.SignalFlags.RUN_FIRST, None, (str,))
     }
     # Make sure to use clock-active in notify signal instead of clock_active
-    clock_active = GObject.Property(type=bool, default=False)
+    #clock_active = GObject.Property(type=bool, default=False)
     page_stack = Gtk.Template.Child()
 
 
@@ -43,9 +43,15 @@ class AppWindow(Gtk.ApplicationWindow):
 
         :param Application app: Application instance object
         """
+        theme_classes = {
+            0: ['clock_frame_1'],
+            1: ['clock_frame_2', 'keycap']
+        }
+        self._style_classes = theme_classes[app.settings.get_enum('clock-face')]
         self._clock = None
         self._home_page = None
         self._block_exist = False
+        self._app=app
         self.check_for_block()
 
     def check_for_block(self, file="/etc/systemd/system/stop_ns_block.timer"):
@@ -83,13 +89,13 @@ class AppWindow(Gtk.ApplicationWindow):
             self._clock = None
 
     def _transition_home(self):
-        self.props.clock_active = False
+        self._app.props.clock_active = False
         self._home_page.show()
         self.page_stack.set_visible_child_name('home_pg')
 
     def _new_home(self):
-        if self.props.clock_active:
-            self.props.clock_active = False
+        if self._app.props.clock_active:
+            self._app.props.clock_active = False
         self._home_page = HomePage()
         self._home_page.connect("start_block", self._emit_time)
         self.page_stack.add_named(self._home_page, 'home_pg')
@@ -98,14 +104,23 @@ class AppWindow(Gtk.ApplicationWindow):
 
     def _new_clock(self, end_time):
         self._destroy_clock()
-        if not self.props.clock_active:
-            self.props.clock_active = True
+        if not self._app.props.clock_active:
+            self._app.props.clock_active = True
         remain = end_time - datetime.now()
         self._clock = Timer(remain.seconds)
         self._clock.connect("timer_done", self._clock_done)
         self.page_stack.add(self._clock)
+        self._apply_clock_face()
         self._clock.show()
         self.page_stack.set_visible_child(self._clock)
+
+    def _apply_clock_face(self):
+        frame_style_context = self._clock.frame.get_style_context()
+        for c in frame_style_context.list_classes():
+            if c != 'horizontal':
+                frame_style_context.remove_class(c)
+        for c in self._style_classes:
+            frame_style_context.add_class(c)
 
     def _clock_done(self, widget):
         self._block_exist = False

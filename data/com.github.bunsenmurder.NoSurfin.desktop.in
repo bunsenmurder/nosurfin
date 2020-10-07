@@ -3,5 +3,6 @@ Name=nosurfin
 Exec=nosurfin
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=Network;
 StartupNotify=true
+Keywords=Productivity;Internet;

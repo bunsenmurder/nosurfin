@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <action id="com.github.bunsenmurder.NoSurfin">
+    <message>Authentication is required by NoSurfin</message>
+    <defaults>
+      <allow_any>auth_admin_keep</allow_any>
+      <allow_inactive>auth_admin_keep</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">@pkgdatadir@/nosurfin/nosurfin.d/sh_scripts/run_as_root</annotate>
+  </action>
+  <action id="com.github.bunsenmurder.NoSurfin.StartBlock">
+    <message>Authentication is required by NoSurfin to start a new block</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">@PYTHON@</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">@pkgdatadir@/nosurfin/nosurfin.d/systemd_wrapper.py</annotate>
+  </action>
+</policyconfig>

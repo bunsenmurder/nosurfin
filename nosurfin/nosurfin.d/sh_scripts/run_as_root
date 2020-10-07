@@ -1,0 +1,16 @@
+#!/bin/sh
+# Wrapper to execute scripts as root with compliance to polkit policy
+# Check for root privalages.
+if [ "$(id -u)" != "0" ]
+ then
+  echo "You cannot perform this action unless you are root." >&2
+  exit 1
+fi
+
+#1st argument is the script path, 2nd arguments is all of it's arguments
+if [ -f "$1" ]; then
+  exec "$1" $2
+else
+  echo "Binary doesn't exist." >&2
+  exit 1
+fi

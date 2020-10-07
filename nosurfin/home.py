@@ -1,4 +1,4 @@
-# window.py
+# home.py
 #
 # Copyright 2020 bunsenmurder
 #
@@ -51,6 +51,5 @@ class HomePage(Gtk.Grid):
     def start_clicked(self, widget):
         hours = self.hr_spin.get_value_as_int()
         minutes = self.m_spin.get_value_as_int()
-        #print(f"Timer set for {hours} hours and {minutes} minutes!")
         time = (hours*60) + minutes
         self.emit('start_block', time)

@@ -1,35 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.36.0 -->
+<!-- Generated with glade 3.38.0 -->
 <interface>
   <requires lib="gtk+" version="3.22"/>
   <object class="GtkPopoverMenu" id="menu">
-    <property name="can_focus">True</property>
+    <property name="can-focus">True</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
+        <property name="can-focus">True</property>
+        <property name="border-width">7</property>
         <property name="orientation">vertical</property>
         <property name="spacing">1</property>
         <child>
-          <object class="GtkModelButton" id="about">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">app.about</property>
-            <property name="text" translatable="yes">About</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkModelButton" id="add_lists">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="action_name">app.lists</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">app.lists</property>
             <property name="text" translatable="yes">Block List</property>
           </object>
           <packing>
@@ -41,9 +28,9 @@
         <child>
           <object class="GtkModelButton" id="ignore_hosts">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="action_name">app.ignore</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">app.ignore</property>
             <property name="text" translatable="yes">Ignore List</property>
           </object>
           <packing>
@@ -53,17 +40,42 @@
           </packing>
         </child>
         <child>
-          <object class="GtkModelButton" id="quit">
+          <object class="GtkSeparator">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">app.quit</property>
-            <property name="text" translatable="yes">Quit</property>
+            <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="prefs">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">app.prefs</property>
+            <property name="text" translatable="yes">Preferences</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="about">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">app.about</property>
+            <property name="text" translatable="yes">About</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </object>
@@ -75,24 +87,24 @@
   </object>
   <object class="GtkImage" id="menu_image">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">open-menu-symbolic</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">open-menu-symbolic</property>
   </object>
   <template class="Window" parent="GtkApplicationWindow">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="has_focus">True</property>
+    <property name="can-focus">False</property>
+    <property name="has-focus">True</property>
     <property name="resizable">False</property>
-    <property name="window_position">center</property>
-    <property name="focus_on_map">False</property>
+    <property name="window-position">center</property>
+    <property name="focus-on-map">False</property>
     <child>
       <object class="GtkStack" id="page_stack">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="hhomogeneous">False</property>
         <property name="vhomogeneous">False</property>
-        <property name="transition_type">crossfade</property>
-        <property name="interpolate_size">True</property>
+        <property name="transition-type">crossfade</property>
+        <property name="interpolate-size">True</property>
         <child>
           <placeholder/>
         </child>
@@ -101,21 +113,42 @@
     <child type="titlebar">
       <object class="GtkHeaderBar" id="head_bar">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="title" translatable="yes">NoSurfin</property>
-        <property name="has_subtitle">False</property>
-        <property name="show_close_button">True</property>
+        <property name="has-subtitle">False</property>
+        <property name="show-close-button">True</property>
         <child>
           <object class="GtkMenuButton" id="menu_btn">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="focus_on_click">False</property>
-            <property name="receives_default">False</property>
+            <property name="can-focus">False</property>
+            <property name="focus-on-click">False</property>
+            <property name="receives-default">False</property>
             <property name="image">menu_image</property>
             <property name="popover">menu</property>
           </object>
           <packing>
-            <property name="pack_type">end</property>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="halign">start</property>
+            <property name="valign">center</property>
+            <property name="margin-start">15</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="icon-name">dialog-information</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>

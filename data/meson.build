@@ -1,5 +1,5 @@
 desktop_file = i18n.merge_file(
-  input: 'com.github.bunsermuder.NoSurfin.desktop.in',
+  input: 'com.github.bunsenmurder.NoSurfin.desktop.in',
   output: 'NoSurfin.desktop',
   type: 'desktop',
   po_dir: '../po',
@@ -15,8 +15,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-  input: 'com.github.bunsermuder.NoSurfin.appdata.xml.in',
-  output: 'com.github.bunsermuder.NoSurfin.appdata.xml',
+  input: 'com.github.bunsenmurder.NoSurfin.appdata.xml.in',
+  output: 'com.github.bunsenmurder.NoSurfin.appdata.xml',
   po_dir: '../po',
   install: true,
   install_dir: join_paths(get_option('datadir'), 'appdata')
@@ -29,13 +29,30 @@ if appstream_util.found()
   )
 endif
 
-install_data('com.github.bunsermuder.NoSurfin.gschema.xml',
-  install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
-)
-
-compile_schemas = find_program('glib-compile-schemas', required: false)
+compile_schemas = find_program('glib-compile-schemas', required: true)
 if compile_schemas.found()
   test('Validate schema file', compile_schemas,
     args: ['--strict', '--dry-run', meson.current_source_dir()]
   )
 endif
+
+# PkExec Policy
+conf_policy = configuration_data()
+conf_policy.set('PYTHON', py_install.path())
+conf_policy.set('pkgdatadir', pkgdatadir)
+
+configure_file(
+  input: 'com.github.bunsenmurder.NoSurfin.policy.in',
+  output: 'com.github.bunsenmurder.NoSurfin.policy',
+  configuration: conf_policy,
+  install: true,
+  install_dir: join_paths(get_option('datadir'), 'polkit-1/actions')
+)
+# GSchema Settings
+install_data('com.github.bunsenmurder.NoSurfin.gschema.xml',
+  install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
+)
+# DBus Service Security
+install_data('com.github.bunsenmurder.NSUrlManager.conf',
+  install_dir: join_paths(get_option('datadir'), 'dbus-1/system.d')
+)

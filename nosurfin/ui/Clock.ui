@@ -1,105 +1,133 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.36.0 -->
+<!-- Generated with glade 3.38.0 -->
 <interface>
   <requires lib="gtk+" version="3.22"/>
-  <template class="Timer" parent="GtkGrid">
+  <!-- interface-css-provider-path clock_testing.css -->
+  <template class="Timer" parent="GtkBox">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="margin_start">35</property>
-    <property name="margin_end">35</property>
-    <property name="margin_bottom">19</property>
-    <property name="column_spacing">1</property>
+    <property name="can-focus">False</property>
+    <property name="margin-top">13</property>
+    <property name="margin-bottom">25</property>
+    <property name="border-width">25</property>
+    <property name="orientation">vertical</property>
     <child>
-      <object class="GtkSpinButton" id="h">
+      <object class="GtkBox" id="frame">
         <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="can_focus">False</property>
-        <property name="max_length">2</property>
-        <property name="invisible_char">*</property>
-        <property name="width_chars">2</property>
-        <property name="xalign">0.5</property>
-        <property name="orientation">vertical</property>
-        <property name="snap_to_ticks">True</property>
-        <property name="wrap">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">center</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkLabel" id="h">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="xpad">5</property>
+            <property name="ypad">1</property>
+            <property name="label" translatable="yes">00</property>
+            <property name="justify">center</property>
+            <property name="ellipsize">middle</property>
+            <property name="width-chars">2</property>
+            <property name="max-width-chars">2</property>
+            <property name="track-visited-links">False</property>
+            <style>
+              <class name="clock_label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="colon_1">
+            <property name="visible">True</property>
+            <property name="sensitive">False</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">∶</property>
+            <style>
+              <class name="colon"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="m">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="xpad">5</property>
+            <property name="ypad">1</property>
+            <property name="label" translatable="yes">00</property>
+            <property name="justify">center</property>
+            <property name="ellipsize">middle</property>
+            <property name="width-chars">2</property>
+            <property name="max-width-chars">2</property>
+            <property name="track-visited-links">False</property>
+            <style>
+              <class name="clock_label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="colon_2">
+            <property name="visible">True</property>
+            <property name="sensitive">False</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">∶</property>
+            <style>
+              <class name="colon"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="s">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="xpad">5</property>
+            <property name="ypad">1</property>
+            <property name="label" translatable="yes">00</property>
+            <property name="justify">center</property>
+            <property name="ellipsize">middle</property>
+            <property name="width-chars">2</property>
+            <property name="max-width-chars">2</property>
+            <property name="track-visited-links">False</property>
+            <style>
+              <class name="clock_label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
         <style>
-          <class name="clock"/>
+          <class name="clock_frame_1"/>
         </style>
       </object>
       <packing>
-        <property name="left_attach">0</property>
-        <property name="top_attach">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkLabel" id="colon_1">
-        <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">∶</property>
-        <style>
-          <class name="colon"/>
-        </style>
-      </object>
-      <packing>
-        <property name="left_attach">1</property>
-        <property name="top_attach">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkSpinButton" id="m">
-        <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="can_focus">False</property>
-        <property name="max_length">2</property>
-        <property name="invisible_char">*</property>
-        <property name="width_chars">2</property>
-        <property name="xalign">0.5</property>
-        <property name="orientation">vertical</property>
-        <property name="snap_to_ticks">True</property>
-        <property name="wrap">True</property>
-        <style>
-          <class name="clock"/>
-        </style>
-      </object>
-      <packing>
-        <property name="left_attach">2</property>
-        <property name="top_attach">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkLabel" id="colon_2">
-        <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">∶</property>
-        <style>
-          <class name="colon"/>
-        </style>
-      </object>
-      <packing>
-        <property name="left_attach">3</property>
-        <property name="top_attach">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkSpinButton" id="s">
-        <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="can_focus">False</property>
-        <property name="max_length">2</property>
-        <property name="invisible_char">*</property>
-        <property name="width_chars">2</property>
-        <property name="xalign">0.5</property>
-        <property name="orientation">vertical</property>
-        <property name="snap_to_ticks">True</property>
-        <property name="wrap">True</property>
-        <style>
-          <class name="clock"/>
-        </style>
-      </object>
-      <packing>
-        <property name="left_attach">4</property>
-        <property name="top_attach">0</property>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
       </packing>
     </child>
   </template>

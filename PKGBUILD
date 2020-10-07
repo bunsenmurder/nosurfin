@@ -1,12 +1,13 @@
-pkgname=nosurfin
-pkgver=0.3.0
+_pkgname=nosurfin
+pkgname="$_pkgname"-git
+pkgver=0.5.0
 pkgrel=1
 pkgdesc="Website blocker capable of blocking specific URLs"
 url="https://github.com/bunsenmurder/nosurfin"
 arch=('any')
 license=('GPL3')
-depends=(python-gobject mitmproxy iptables gtk3)
-makedepends=(glib2 git meson appstream-glib python)
+depends=(gtk3 mitmproxy python-gobject python-jeepney systemd)
+makedepends=(appstream-glib git meson python)
 source=("git+https://github.com/bunsenmurder/nosurfin.git")
 sha256sums=('SKIP')
 

@@ -63,6 +63,9 @@
         <property name="can_focus">False</property>
         <property name="receives_default">False</property>
         <signal name="clicked" handler="start_clicked" swapped="no"/>
+        <style>
+          <class name="circular"/>
+        </style>
       </object>
       <packing>
         <property name="left_attach">0</property>

@@ -1,4 +1,4 @@
-# window.py
+# clock.py
 #
 # Copyright 2020 bunsenmurder
 #
@@ -17,13 +17,13 @@
 
 from gi.repository import Gtk, GLib, GObject
 
-def _time_form(t):
+def time_format(t):
     h, remainder = divmod(t, 3600)
     m, s = divmod(remainder, 60)
     return h, m, s
 
 @Gtk.Template(resource_path='/com/github/bunsenmurder/NoSurfin/ui/Clock.ui')
-class Timer(Gtk.Grid):
+class Timer(Gtk.Box):
     # Set GObject things and retrieve so template objects
     __gtype_name__ = "Timer"
     __gsignals__ = {'timer_done':(GObject.SignalFlags.RUN_LAST, None, ())}
@@ -31,6 +31,7 @@ class Timer(Gtk.Grid):
     h = Gtk.Template.Child()
     m = Gtk.Template.Child()
     s = Gtk.Template.Child()
+    frame = Gtk.Template.Child()
 
     def __init__(self, time):
         super().__init__()
@@ -38,7 +39,7 @@ class Timer(Gtk.Grid):
 
     def count_down(self, time):
         if time > 0:
-            h, m, s = _time_form(time)
+            h, m, s = time_format(time)
             self.s.set_text(f'{s:02d}')
             self.m.set_text(f'{m:02d}')
             self.h.set_text(f'{h:02d}')

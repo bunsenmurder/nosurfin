@@ -1,21 +1,41 @@
-#pkgdatadir = '/usr/local/share/nosurfin'
-#moduledir = '/usr/local/share/nosurfin/nosurfin'
-pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), meson.project_name())
+#moduledir = '/usr/local/share/nosurfin/nosurfin' ir '/usr/share/nosurfin/nosurfin'
 moduledir = join_paths(pkgdatadir, 'nosurfin')
-gnome = import('gnome')
+pkglibdir = join_paths(prefix, get_option('libdir'), 'nosurfin')
+
+url_manager_dep = [
+  gio_dep,
+  gio_unix_dep,
+  glib_dep
+]
+
+codegen = gnome.gdbus_codegen('nsurlmanager',
+  'url-manager/com.github.bunsenmurder.NSUrlManager.xml',
+  interface_prefix: 'com.github.bunsenmurder'
+)
+
+url_manager_sources = [
+  'url-manager/nsurlmanager-main.c',
+  codegen
+]
+
+executable ('nsurlmanager',
+  url_manager_sources,
+  dependencies: url_manager_dep,
+  install: true,
+  install_dir: pkglibdir,
+  install_rpath: pkglibdir
+)
 
 gnome.compile_resources('nosurfin',
   'nosurfin.gresource.xml',
   gresource_bundle: true,
   source_dir: meson.current_build_dir(),
   install: true,
-  install_dir: pkgdatadir,
+  install_dir: pkgdatadir
 )
 
-python = import('python')
-
 conf = configuration_data()
-conf.set('PYTHON', python.find_installation('python3').path())
+conf.set('PYTHON', py_install.path())
 conf.set('VERSION', meson.project_version())
 conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
 conf.set('pkgdatadir', pkgdatadir)
@@ -34,8 +54,11 @@ nosurfin_sources = [
   'window.py',
   'clock.py',
   'home.py',
-  'sleep.py',
+  'dbus_tools.py',
   'editor.py',
+  'preferences.py',
+  'misc.py',
+  'wizard.py'
 ]
 
 install_data(nosurfin_sources, install_dir: moduledir)

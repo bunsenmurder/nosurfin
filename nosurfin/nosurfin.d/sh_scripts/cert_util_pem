@@ -1,0 +1,207 @@
+#!/bin/sh
+#Switches
+verify=false
+install=false
+remove=false
+help=false
+
+cert_nname=""
+cert_path=""
+cert_ins_path=""
+user_data_dir='/home/archbox/.local/share/nosurfin/'
+
+install_cert() {
+  check_result=$(verify_cert)
+  if [ "$check_result" = "status: certificate is valid" ]
+  then
+    echo "Certificate still valid. Skipping Install."
+  elif [ "$check_result" = "status: certificate is not valid" ]
+  then # Remove old entry and installs self
+    remove_cert
+    cat $cert_path | sed "1 s/^/\n$cert_nname\n/" | sed -e '$a\' | tee -a $cert_ins_path > /dev/null
+  elif [ "$check_result" = "status: certificate is not correct type" ]
+  then
+    echo "Skipping, file is not a pem bundle."
+  else
+    cat $cert_path | sed "1 s/^/\n$cert_nname\n/" | sed -e '$a\'  | tee -a $cert_ins_path > /dev/null
+  fi
+}
+
+remove_cert() {
+  check_result=$(verify_cert)
+  last_line=$(cat $cert_path | tail -n 1)
+  #cert_nn=$(echo $cert_nname | sed '1 s/^/\n/')
+  #echo "$cert_nn"
+  if [ "$check_result" = "status: certificate is valid" ]
+  then # head -c -1 as an alternative for last sed line > "$user_data_dir/test_file" 
+    #out=$(sed "/^$cert_nname/,/^$last_line/d" $cert_ins_path | wc -c)
+    #dd if=/dev/null of=$cert_ins_path bs="$out"
+    sed -i "/^$cert_nname/,/^$last_line/d" $cert_ins_path
+    #cat $cert_ins_path | sed --posix "/^$cert_nname/,/^$last_line/d" | dd of=$cert_ins_path 2> /dev/null
+    #cat $cert_ins_path | sed -e '$a\' | awk -v RS= -v ORS='\n' "/$cert_nname/,/$last_line/{next}1" | dd of=$cert_ins_path 2> /dev/null
+    #cat $cert_path | sed "1 s/^/\n$cert_nname\n/" | awk -v RS= -v ORS='\n\n' 'NR==FNR{a[$0]++;next}!($0 in a)' - $cert_ins_path  > "$user_data_dir/file_test2" #| dd of=$cert_ins_path status=noxfer
+  elif [ "$check_result" = "status: certificate is not valid" ]
+  then
+    sed -i "/^$cert_nname/,/^$last_line/d" $cert_ins_path
+    #cat $cert_ins_path | sed -i -c -e "/^$cert_nname/,/^$last_line/d"
+    #cat $cert_ins_path | awk -v RS= -v ORS='\n\n' "/$cert_nname/,/$last_line/{next}1" | dd of=$cert_ins_path 2> /dev/null
+    #cat $cert_ins_path | sed --posix "/^$cert_nname/,/^$last_line/d" | dd of=$cert_ins_path 2> /dev/null
+  else
+   echo "Certificate doesn't exist, exiting." >&2
+   exit 1
+  fi
+}
+
+verify_cert() {
+  #cert_contents=$(cat $cert_path)
+  cert_line_count=$(cat $cert_path | wc -l)
+  cert_type_check=$(check_cert_type)
+  if [ -n "$cert_type_check" ]
+  then
+    echo "status: certificate is not correct type"
+  else
+    cert_bundle_contents=$(cat $cert_ins_path | grep -m 1 -A $cert_line_count "$cert_nname" | tail -n +2)
+    if [ -n "$cert_bundle_contents" ]
+    then #https://unix.stackexchange.com/questions/397655/two-files-comparison-in-bash-script
+      if ( cat $cert_ins_path | grep -m 1 -A $cert_line_count "$cert_nname" | tail -n +2 | cmp -s $cert_path - )
+      then
+        echo "status: certificate is valid"
+      else
+        echo "status: certificate is not valid"
+      fi
+    else
+      echo "status: certificate is not installed"
+    fi
+  fi
+}
+
+check_cert_type() {
+  if [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN X509 CRL')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN CERTIFICATE REQUEST')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN NEW CERTIFICATE REQUEST')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN RSA PUBLIC KEY')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN PKCS7')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN PRIVATE KEY')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN PUBLIC KEY')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN RSA PRIVATE KEY')" ]; then
+    echo "status: certificate is not correct type"
+  elif [ -n "$(cat $cert_ins_path | grep -m 1 'BEGIN DSA PRIVATE KEY')" ]; then
+    echo "status: certificate is not correct type"
+  fi
+}
+
+check_commands() {
+  if ( $install ) && ( $remove ); then
+    echo "Cannot both install and remove a certificate at the same time."
+  elif ( $install ) && ( $verify ); then
+    install_cert
+    verify_cert
+  elif ( $remove ) && ( $verify ); then
+    remove_cert
+    verify_cert
+  elif ( $install ); then
+    install_cert
+  elif ( $remove ); then
+    remove_cert
+  elif ( $verify ); then
+    verify_cert
+  else
+    echo "Please specify a command."
+  fi
+}
+
+check_required() {
+  if [ -n "$cert_nname" ] && [ -f "$cert_path" ] && [ -f "$cert_ins_path" ]; then
+    check_commands
+  elif [ -n "$cert_nname" ] && [ -f "$cert_path" ]; then
+    echo "Destination certificate bundle doesn't seem to exist, did you specify the right one?"
+  elif [ -n "$cert_nname" ] && [ -f "$cert_ins_path" ]; then
+    echo "Source certificate doesn't seem to exist, did you specify the right one?"
+  elif [ -n "$cert_nname" ]; then
+    echo "Both the source certificate and destination certificate bundle don't seem to exist, did you sepcify the right ones?"
+  elif [ -z "$cert_nname" ]; then
+    echo "Nickname is missing. Please specify it."
+  else
+    echo "Something went wrong. Please check your arguments."
+  fi
+}
+
+help_out() {
+  echo -n "cert_util_pem
+NoSurfin PEM certificate mangement utility.
+
+usage:
+  cert_util_pem -n=<nick-name> -s=<source-certificate> -d=<destination-certificate> <commands> ...
+  cert_util_pem -h, --help
+  
+ Options:
+  -h, --help              Display this help document and exit. Overrides all other commands.
+
+ Required
+  -n, --nick-name         Specify the nick name for the source certificate. Acts as Primary Key.
+  -s, --source-cert       Source certificate file.
+  -d, --destination-cert  Specify the destination certificate bundle file.
+
+
+ Commands:
+  -i, --install           Install source cert to destination cert bundle. Cannot use with remove.
+  -r, --remove            Remove source cert from destination cert bundle if installed. Cannot use with install.
+  -v, --verify            Verify that source cert is installed to dstination cert bundle.
+
+"
+}
+
+if [ "$#" -gt 0 ]; then
+  for arg in "$@"
+  do
+    case $arg in
+    -n=*|--nick-name=*)
+      cert_nname="##${arg#*=}"
+      shift
+      ;;
+    -s=*|--source-cert=*)
+      cert_path="${arg#*=}"
+      shift
+      ;;
+    -d=*|--destination-cert=*)
+      cert_ins_path="${arg#*=}"
+      shift
+      ;;
+    -v|--verify)
+      verify=true
+      shift
+      ;;
+    -i|--install)
+      install=true
+      shift
+      ;;
+    -r|--remove)
+      remove=true
+      shift
+      ;;
+    -h|--help)
+      help=true
+      shift
+      ;;
+    *)
+      shift
+    esac
+  done
+else
+  help=true
+fi
+
+if ( $help ); then
+  help_out
+else
+  check_required
+fi
+
+exit 0

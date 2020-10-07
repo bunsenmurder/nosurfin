@@ -1,0 +1,299 @@
+#!/bin/sh
+
+#Switches 
+use_pipx_mitm=false
+use_ca_certs=false
+use_p11k=false
+verify=false
+install=false
+remove=false
+help=false
+restore=false
+
+
+# Paths 
+user_data_dir="" # Usually $XDG_DATA_HOME/nosurfin
+cert_name="mitmproxy-ca-cert_ns.pem"
+cert_name_crt="mitmproxy-ca-cert_ns.crt"
+run_mitm() {
+  if ( $use_pipx_mitm ); then
+    /opt/ns_dep/local/bin/mitmdump &
+  else
+    mitmdump &
+  fi
+}
+check_root() {
+  if [ "$(id -u)" != "0" ]
+  then
+    echo "You cannot perform this action unless you are root." >&2
+    exit 1
+  fi
+}
+# General function for generating our mitmproxy certificates.
+generate_certs() {
+  check_root
+  # Removes .mitmproxy to prevent the possibility of wrong certs being installed.
+  rm -rf ~/.mitmproxy
+  run_mitm &
+  sleep 3
+  cp ~/.mitmproxy/mitmproxy-ca-cert.pem ~/.mitmproxy/"$cert_name"
+  
+  if [ -e "$user_data_dir" ]; then
+    # Moves the newly generated cert to NoSurfin user data directory
+    rm -f "$user_data_dir/$cert_name"
+    cp ~/.mitmproxy/mitmproxy-ca-cert.pem "$user_data_dir/$cert_name"
+  fi
+   #Reference: https://stackoverflow.com/questions/3510673/find-and-kill-a-process-in-one-line-using-bash-and-regex
+  kill $(ps aux | grep '[m]itmdump' | awk '{print $2}')
+}
+
+# Functions for working with p11-kit.
+p11_kit_install() {
+  check_root
+  mitmcert_pkcs11_uri=$(trust list --purpose=server-auth | grep -B 2 -A 2 "mitmproxy"| grep pkcs11)
+  if [ -n "$mitmcert_pkcs11_uri" ]
+  then
+    cert_expire=$(trust dump --filter="$mitmcert_pkcs11_uri" | grep "end-date" | awk '{match($0, "[0-9]+")}END{print substr($0, RSTART, RLENGTH)}')
+    if [ $(date +%s -d "$(date +"%Y%m%d")") -lt $(date +%s -d "$(date --date="$cert_expire" +"%Y%m%d")") ]
+    then
+      echo "Certificate still valid. Skipping Install."
+    else
+      echo "Certificate expired, installing new certificate."
+      trust anchor --remove "$mitmcert_pkcs11_uri"
+      generate_certs
+      trust anchor --store ~/.mitmproxy/"$cert_name"
+    fi
+  else
+    echo "Installing certificate."
+    generate_certs
+    trust anchor --store ~/.mitmproxy/"$cert_name"
+  fi
+}
+
+p11_kit_check_cert() {
+  mitmcert_pkcs11_uri=$(trust list --purpose=server-auth | grep -B 2 -A 2 "mitmproxy"| grep pkcs11)
+  if [ -n "$mitmcert_pkcs11_uri" ]
+  then
+    cert_expire=$(trust dump --filter="$mitmcert_pkcs11_uri" | grep "end-date" | awk '{match($0, "[0-9]+")}END{print substr($0, RSTART, RLENGTH)}')
+    echo "$(date +%s -d "$(date --date="$cert_expire" +"%Y%m%d")"): certificate is valid"
+  else
+    echo "Status of certificate: certificate is not installed"
+  fi
+}
+
+p11_kit_remove_cert() {
+  check_root
+  mitmcert_pkcs11_uri=$(trust list --purpose=server-auth | grep -B 2 -A 2 "mitmproxy" | grep pkcs11)
+  if [ -n "$mitmcert_pkcs11_uri" ]
+  then
+    trust anchor --remove "$mitmcert_pkcs11_uri"
+  else
+    echo "Certificate doesn't exist, exiting." >&2
+    exit 1
+  fi
+}
+
+# Functions for working with normal linux system certificate bundle.
+update_ca_cert_install() {
+  check_root
+  cert_path="/usr/local/share/ca-certificates/$cert_name_crt"
+  if [ -f "$cert_path" ]
+  then
+    cert_expire=$(openssl x509 -in "$cert_path" -noout -enddate | cut -d "=" -f 2)
+    if [ $(date +%s) -lt $(date +%s -d "$cert_expire") ]
+    then
+      echo "Certificate still valid. Skipping Install."
+    else
+      echo "Certificate expired, installing new certificate."
+      generate_certs
+      rm -f "$cert_path"
+      openssl x509 -in ~/.mitmproxy/"$cert_name" -inform PEM -out "$cert_path"
+      update-ca-certificates -f
+    fi
+  else
+    echo "Installing certificate."
+    generate_certs
+    openssl x509 -in ~/.mitmproxy/"$cert_name" -inform PEM -out "$cert_path"
+    update-ca-certificates
+  fi
+}
+
+sys_ca_cert_check() {
+  cert_path="/usr/local/share/ca-certificates/$cert_name_crt"
+  if [ -f "$cert_path" ]
+  then
+    cert_expire=$(openssl x509 -in "$cert_path" -noout -enddate | cut -d "=" -f 2)
+    echo "$(date +%s -d "$cert_expire"): certificate is valid"
+  else
+    echo "Status of certificate: certificate is not installed"
+  fi
+}
+
+sys_ca_remove_cert() {
+  check_root
+  cert_path="/usr/local/share/ca-certificates/$cert_name_crt"
+  if [ -f "$cert_path" ]
+  then
+    rm -f "$cert_path"
+    update-ca-certificates -f
+  else
+    echo "Certificate doesn't exist, exiting." >&2
+    exit 1
+  fi
+}
+
+restore_from_ca_certs(){
+  check_root
+  cert_path="/usr/local/share/ca-certificates/$cert_name_crt"
+  if [ -f "$cert_path" ]
+  then
+    cp "$cert_path" ~/.mitmproxy/"$cert_name"
+    if [ -e "$user_data_dir" ]; then
+      # Moves the newly generated cert to NoSurfin user data directory
+      cp ~/.mitmproxy/"$cert_name" "$user_data_dir/$cert_name"
+    fi
+  else
+    echo "certificate is not installed"
+  fi
+}
+
+restore_from_p11k(){
+  check_root
+  mitmcert_pkcs11_uri=$(trust list --purpose=server-auth | grep -B 2 -A 2 "mitmproxy" | grep pkcs11)
+  if [ -n "$mitmcert_pkcs11_uri" ]
+  then
+    trust extract --format=pem-bundle --filter="$mitmcert_pkcs11_uri" ~/.mitmproxy/"$cert_name"
+    if [ -e "$user_data_dir" ]; then
+      # Moves the newly generated cert to NoSurfin user data directory
+      cp ~/.mitmproxy/"$cert_name" "$user_data_dir/$cert_name"
+    fi
+  else
+    echo "certificate is not installed"
+  fi
+}
+
+check_options() {
+  if ( $use_ca_certs ) && ( $use_p11k ); then
+    echo "Cannot specify both ca-certs and p11-kit at the same time."
+  elif ( $install ) && ( $remove ); then
+    echo "Cannot both install and remove a certificate at the same time."
+  elif ( $use_ca_certs ) && ( $restore ); then
+    restore_from_ca_certs
+  elif ( $use_ca_certs ) && ( $install ) && ( $verify ); then
+    update_ca_cert_install
+    sys_ca_cert_check
+  elif ( $use_ca_certs ) && ( $install ); then
+    update_ca_cert_install
+  elif ( $use_ca_certs ) && ( $remove ) && ( $verify ); then
+    sys_ca_remove_cert
+    sys_ca_cert_check
+  elif ( $use_ca_certs ) && ( $remove ); then
+    sys_ca_remove_cert
+  elif ( $use_ca_certs ) && ( $verify ); then
+    sys_ca_cert_check
+  elif ( $use_p11k ) && ( $restore ); then
+    restore_from_p11k
+  elif ( $use_p11k ) && ( $install ) && ( $verify ); then
+    p11_kit_install
+    p11_kit_check_cert
+  elif ( $use_p11k ) && ( $install ); then
+    p11_kit_install
+  elif ( $use_p11k ) && ( $remove ) && ( $verify ); then
+    p11_kit_remove_cert
+    p11_kit_check_cert
+  elif ( $use_p11k ) && ( $remove ); then
+    p11_kit_remove_cert
+  elif ( $use_p11k ) && ( $verify ); then
+    p11_kit_check_cert
+  elif ( $use_ca_certs ) || ( $use_p11k ); then # Try || if that doesn't work
+    printf '%s\n' "Please specify an command like --verify, --install, or --remove." " Note: You cannot mix the remove and install arguements."
+  else
+    echo "Please specify either -c|--ca-certs or -p|p11-kit with your arguments."
+  fi
+}
+
+help_out() {
+  echo -n "cert_util_sys
+NoSurfin system certificate mangement utility.
+
+usage:
+  cert_util_sys <options> ... <commands> ...
+  cert_util_sys --data-dir=<dir> ... <options>...  <commands>  ...
+
+
+ Options:
+  -h, --help        Display this help document and exit. Overrides all other commands.
+  -x, --pip-x       Sets the mitmdump binary installed by pipx to the /opt directory.
+
+ Required (only one)
+  -c, --ca-certs    Specify if system uses /etc/ssl/certs/ca-certificates.crt certificate bundle.
+  -p, --p11-kitd    Specify if system uses p11-kit.
+  
+ Highly Recommended (Specified by NoSurfin GUI), but optional
+  -d=, --data-dir=  Specify the NoSurfin user data directory to copy mitmproxy cert to.
+
+
+ Commands:
+  -i, --install     Install mitmproxy cert to system. Cannot use with remove.
+  -r, --remove      Remove mitmproxy cert from system, if installed. Cannot use with install.
+  -v, --verify      Verify that mitmproxy cert is installed to system and output expirate date.
+  -s, --restore     Restores the installed certificate to '/root/.mitmproxy' and user data directory if provided; does not work with other commands.
+
+"
+}
+
+if [ "$#" -gt 0 ]; then
+  for arg in "$@"
+  do
+    case $arg in
+    -c|--ca-certs)
+      use_ca_certs=true
+      shift
+      ;;
+    -p|--p11-kit)
+      use_p11k=true
+      shift
+      ;;
+    -d=*|--data-dir=*)
+      user_data_dir="${arg#*=}"
+      shift
+      ;;
+    -v|--verify)
+      verify=true
+      shift
+      ;;
+    -i|--install)
+      install=true
+      shift
+      ;;
+    -r|--remove)
+      remove=true
+      shift
+      ;;
+    -h|--help)
+      help=true
+      shift
+      ;;
+    -x|--pip-x)
+      use_pipx_mitm=true
+      shift
+      ;;
+    -s|--restore)
+      restore=true
+      shift
+      ;;
+    *)
+      shift
+    esac
+  done
+else
+  help=true
+fi
+
+if ( $help ); then
+  help_out
+else
+  check_options
+fi
+
+exit 0

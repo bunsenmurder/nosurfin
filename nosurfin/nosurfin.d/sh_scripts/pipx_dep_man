@@ -1,0 +1,139 @@
+#!/bin/sh
+#Switches
+verify=false
+install=false
+remove=false
+remove=false
+help=false
+
+# Init commands
+if ! [ -e "/opt/ns_dep" ]
+then
+ mkdir /opt/ns_dep
+ mkdir /opt/ns_dep/local
+ mkdir /opt/ns_dep/local/bin
+fi
+
+export PIPX_BIN_DIR=/opt/ns_dep/local/bin
+export PIPX_HOME=/opt/ns_dep/local
+
+check_root() {
+  if [ "$(id -u)" != "0" ]
+  then
+    echo "You cannot perform this action unless you are root." >&2
+    exit 1
+  fi
+}
+
+install_dependencies() {
+ check_root
+ output=$(verify_dependencies)
+ if [ "$output" = "installed" ]
+ then
+   echo "Already installed. Skipping."
+ else
+   pipx install --force mitmproxy 1>/dev/null #2>/dev/null
+   pipx inject mitmproxy jeepney 1>/dev/null #2>/dev/null
+ fi
+}
+
+remove_dependencies() {
+ check_root
+ output=$(verify_dependencies)
+ if [ "$output" = "not installed" ]
+ then
+   echo "Already not installed. Skipping."
+ else
+   pipx uninstall mitmproxy 1>/dev/null
+ fi
+}
+
+verify_dependencies() {
+ output=$(pipx list | grep mitmdump)
+ if [ -n "$output" ]
+ then
+   echo "installed"
+ else
+   echo "not installed"
+ fi
+}
+
+
+check_options() {
+  if ( $install ) && ( $remove ); then
+    echo "Cannot both install and remove at the same time."
+  elif ( $install ) && ( $verify ); then
+    install_dependencies
+    verify_dependencies
+  elif ( $remove ) && ( $verify ); then
+    remove_dependencies
+    verify_dependencies
+  elif ( $install ); then
+    install_dependencies
+  elif ( $remove ); then
+    remove_dependencies
+  elif ( $verify ); then
+    verify_dependencies
+  else
+    echo "Please specify a command."
+  fi
+}
+
+help_out() {
+  echo -n "pipx_dep_man
+NoSurfin's pipx dependancy manager
+
+usage:
+  pipx_dep_man <commands> ...
+
+
+ Options:
+  -h, --help        Display this help document and exit. Overrides all other commands.
+
+ Commands:
+  -i, --install     Installs mitmproxy and jeepney.
+  -r, --remove      Remove mitmproxy and jeepney.
+  -v, --verify      Verifies that
+
+"
+}
+
+if [ "$#" -gt 0 ]; then
+  for arg in "$@"
+  do
+    case $arg in
+    -i|--install)
+      install=true
+      shift
+      ;;
+    -r|--remove)
+      remove=true
+      shift
+      ;;
+    -v|--verify)
+      verify=true
+      shift
+      ;;
+    -i|--install)
+      install=true
+      shift
+      ;;
+    -h|--help)
+      help=true
+      shift
+      ;;
+    *)
+      shift
+    esac
+  done
+else
+  help=true
+fi
+
+if ( $help ); then
+  help_out
+else
+  check_options
+fi
+
+exit 0

@@ -1,28 +1,35 @@
-/* Timer Elements: Themes spin buttons to look like framed labels*/
-.clock {
-  font-size: 60px;
-  font-weight: 200;
-  }
-
-.colon {
-  font-size: 60px;
+/* Clock face themes */
+clock_frame_1 {
   color: @theme_text_color;
-}
-
-spinbutton:disabled{
-  color: @theme_text_color;
-}
-
-spinbutton > entry:disabled {
-  border-radius: 10px;
-  border-style: none;
   background-color: @borders;
 }
 
-spinbutton > button:disabled {
-  background-color: transparent;
-  color: transparent;
-  border-color: transparent;
-  /*Line below is for older gtk compatability*/
-  background-image: none;
-  }
+.clock_frame_1 > .colon {
+  font-size: 60px;
+  color: @theme_text_color;
+}
+
+.clock_frame_1 > .clock_label {
+  font-size: 64px;
+  font-weight: 200;
+  border-radius: 10px;
+  background-color: @borders;
+  color: @theme_text_color;
+}
+
+/*Set box holding labels as keycap style class in code for this theme*/
+clock_frame_2 {
+  border-radius: 10px;
+  /*background-color: @borders;*/
+}
+
+.clock_frame_2 > .colon {
+  font-size: 80px;
+  color: @theme_text_color;
+}
+
+.clock_frame_2 > .clock_label {
+  font-size: 80px;
+  font-weight: 400;
+  color: @theme_text_color;
+}

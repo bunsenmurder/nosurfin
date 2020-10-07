@@ -1,4 +1,4 @@
-# systemd_wrapper.py
+# blocklist.py
 #
 # Copyright 2020 bunsenmurder
 #
@@ -21,8 +21,25 @@ from mitmproxy.proxy.config import HostMatcher
 from mitmproxy.script import concurrent
 from mitmproxy import http
 from os import path
+import asyncio
 
-addresses = []
+# Check if jeepney is installed, if not disables jeepney
+jeepney = False
+try:
+    from jeepney.integrate.asyncio import connect_and_authenticate, Proxy
+    from jeepney.bus_messages import message_bus, MatchRule
+    from jeepney import DBusAddress, new_method_call
+    jeepney = True
+except ImportError as e:
+    print(e)
+    pass
+if jeepney:
+    urlmgr = DBusAddress('/com/github/bunsenmurder/NSUrlManager',
+                        bus_name='com.github.bunsenmurder.NSUrlManager',
+                        interface='org.freedesktop.DBus.Properties')
+    get_token = new_method_call(urlmgr, 'Get', 'ss',
+                                (urlmgr.bus_name, 'Token'))
+blocklist = []
 #Find HTML Path
 html_path = path.join(path.dirname(path.realpath(__file__)), 'index.html')
 #Load block html page
@@ -31,34 +48,88 @@ with open(html_path, "r", encoding='utf-8') as f:
 block_response = http.HTTPResponse.make(
     200, html_page, {"Content-Type": "text/html"})
 
+async def signal_listen(loader, ignore_list):
+    _, protocol = await connect_and_authenticate(bus="SYSTEM")
+    session_proxy = Proxy(message_bus, protocol)
+
+    # Create a "signal-selection" match rule
+    match_rule = MatchRule(
+        type="signal",
+        sender=urlmgr.bus_name,
+        interface=urlmgr.interface,
+        member="PropertiesChanged",
+        path=urlmgr.object_path,
+    )
+
+    HostAddedStatus = False
+    resp = await protocol.send_message(get_token)
+    PrevToken = resp[0][1]
+    if PrevToken:
+        ignore_list.append(f'{PrevToken.rstrip()}:443')
+        loader.master.server.config.check_filter = \
+            HostMatcher("ignore", ignore_list)
+        HostAddedStatus = True
+
+    # Callback
+    def on_properties_changed(message):
+        prop, type_value = message[1][0]
+        _, value = type_value
+        if prop == 'Token':
+            nonlocal HostAddedStatus
+            if not HostAddedStatus:
+                HostAddedStatus = True
+                nonlocal loader
+                nonlocal ignore_list
+                ignore_list.append(f'{value.rstrip()}:443')
+                loader.master.server.config.check_filter = \
+                    HostMatcher("ignore", ignore_list)
+        elif prop == 'Url':
+            global blocklist
+            blocklist.append(value)
+
+    # Attach call back to signal
+    protocol.router.subscribe_signal(
+        callback=on_properties_changed,
+        path=urlmgr.object_path,
+        interface=urlmgr.interface,
+        member="PropertiesChanged"
+    )
+
+    # Add match rule to be notified of signal
+    await session_proxy.AddMatch(match_rule)
+
 def load(loader):
     # Within this stage both the initialized server objects
     # and custom options can be accessed early.
     # The server object provides the check_filter attribute which holds
     # a Host Matcher object, which can be replaced with our own
     # HostMatcher object to avoid adding too many command line options.
-
+    ignorelist = []
     if 'blocklist' in loader.master.options.deferred:
         blocklist_path = loader.master.options.deferred.pop('blocklist')
         if isinstance(blocklist_path, str) and True:
             with open(blocklist_path, "r") as f:
                 for line in f:
-                    addresses.append(line.rstrip())
+                    blocklist.append(line.rstrip())
     if 'ignorehostlist' in loader.master.options.deferred:
         # TODO: Look into domain/ip validation for ignore list
         # TODO: Add regex patterns for more efficient pattern matching
         ignorelist_path = loader.master.options.deferred.pop('ignorehostlist')
         if isinstance(ignorelist_path, str) and True:
             with open(ignorelist_path, "r") as f:
-                ignore_addresses = [f'{line.rstrip()}:443' for line in f]
+                ignorelist = [f'{line.rstrip()}:443' for line in f]
                 # Patch HostMatcher object with all ignored hosts
                 loader.master.server.config.check_filter = \
-                    HostMatcher("ignore", ignore_addresses)
+                    HostMatcher("ignore", ignorelist)
+    # Checks if jeepney is installed
+    if jeepney:
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(
+            signal_listen(loader, ignorelist), loop)
 
 
 # This decorator allows concurrent blocking request interception
 @concurrent
 def request(flow):
-    match = any(address in flow.request.pretty_url for address in addresses)
-    if match:
+    if any(url in flow.request.pretty_url for url in blocklist):
         flow.response = block_response

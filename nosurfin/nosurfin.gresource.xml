@@ -6,5 +6,8 @@
     <file>ui/Clock.ui</file>
     <file>ui/Editor.ui</file>
     <file>ui/Home.ui</file>
+    <file>ui/Preferences.ui</file>
+    <file>ui/CertWizard.ui</file>
+    <file>ui/ListBoxRow.ui</file>
   </gresource>
 </gresources>
