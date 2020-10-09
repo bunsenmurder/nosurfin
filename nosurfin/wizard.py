@@ -584,8 +584,11 @@ class CertWizard(Gtk.ApplicationWindow):
             path = home
             xdg_user_dirs = self.settings.get_strv('xdg-user-dirs')
             usr_ban_dirs = self.settings.get_strv('banned-dirs')
-            ban_dirs = [Path(GLib.get_user_special_dir(
+            try: #In case dirs don't use XDG dirs spec
+                ban_dirs = [Path(GLib.get_user_special_dir(
                     getattr(GLib.UserDirectory, d))) for d in xdg_user_dirs]
+            except Exception as e:
+                ban_dirs = []
             #https://specifications.freedesktop.org/trash-spec/trashspec-latest.html
             ban_dirs.append(self.data_dir.parent / 'Trash')
             ban_dirs.append(Path(GLib.get_user_cache_dir()))

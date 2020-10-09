@@ -1,3 +1,4 @@
+# Maintainer: bunsenmurder <bunsenmurder@disroot.org>
 _pkgname=nosurfin
 pkgname="$_pkgname"-git
 pkgver=0.5.0
@@ -12,16 +13,12 @@ source=("git+https://github.com/bunsenmurder/nosurfin.git")
 sha256sums=('SKIP')
 
 pkgver() {
-  cd $pkgname
+  cd $_pkgname
   git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
-prepare() {
-  cd $pkgname
-}
-
 build() {
-  arch-meson $pkgname build
+  arch-meson $_pkgname build
   ninja -C build
 }
 

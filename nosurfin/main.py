@@ -209,7 +209,7 @@ class Application(Gtk.Application):
                 exp = ("NoSurfin's SSL certificate has expired and cannot "
                         "run without it.")
                 toggle_sens_btns_recur(self.window.page_stack, False, vis=True)
-            text = ("Would you like to reinstall it now? If not, please install"
+            text = (" Would you like to reinstall it now? If not, please install"
                     " it before the expiration with the Certificate Wizard.")
             text = exp + text
             message_dialog(None, text, yes_cb, no_cb, yes_no=True)

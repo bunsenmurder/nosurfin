@@ -1,0 +1,18 @@
+name: Build Debian Package
+on: push
+jobs:
+  release:
+   runs-on: ubuntu-20.04
+   steps:
+   - name: Checkout Master
+     uses: actions/checkout@v2
+     
+   - name: Build Debian package
+     uses: dawidd6/action-debian-package@v1
+     with:
+       artifacts_directory: output
+       
+   - uses: actions/upload-artifact@v2
+     with:
+       name: nosurfin_deb
+       path: /home/runner/work/nosurfin/nosurfin/output

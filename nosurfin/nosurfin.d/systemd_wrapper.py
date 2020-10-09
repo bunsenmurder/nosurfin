@@ -46,10 +46,12 @@ if not exists(urlmgr_path):
 mitm_cmd = f'{mitm_path} -s {filter_path} --mode transparent ' \
            f'--set block_global=false --set flow_detail=0 ' \
            f'--set console_eventlog_verbosity=error ' \
-           f'--set termlog_verbosity=error ' \
-           f'--set blocklist={blocklist_file} ' \
-           f'--set ignorehostlist={ignorelist_file}'
+           f'--set termlog_verbosity=error '
 
+if exists(blocklist_file):
+    mitm_cmd = mitm_cmd + f'--set blocklist={blocklist_file} '
+if exists(ignorelist_file):
+    mitm_cmd = mitm_cmd + f'--set ignorehostlist={ignorelist_file} '
 # Shell scripts run by systemd
 net_setup = join(current_dir, 'sh_scripts/network_setup.sh')
 net_reset = join(current_dir, 'sh_scripts/network_reset.sh')
