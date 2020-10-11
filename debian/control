@@ -13,8 +13,7 @@ Build-Depends: debhelper (>= 12),
                build-essential,
                gobject-introspection,
 	       pkg-config,
-               build-essential,
-               systemd
+               build-essential
 Standards-Version: 4.0.0
 Homepage: https://github.com/bunsenmurder/nosurfin
 
@@ -25,16 +24,17 @@ Depends: python3,
 	 pipx,
 	 libnss3-tools,
 	 python3-venv,
+	 systemd,
      ${misc:Depends},
      ${shlibs:Depends},
      ${python3-gi:Depends},
      ${gir:Depends}
 Recommends: python3-jeepney, 
      mitmproxy (>=5.0)
-Description: Website Blocking
- Block distracting websites and take back your productivity. NoSurfin is a 
- personal web site blocker for Linux, capable of blocking a specific URL 
- instead of limiting you to hosts only blocking. By setting the URLs to 
- block and a specific amount of time, those websites will be blocked for 
- that time period. Great for when you want to stop surfing the web and get 
- some work done!
+Description: Personal Website Blocker
+ Block distracting websites and take back your productivity! NoSurfin is a 
+ personal web site blocker for Linux, capable of blocking specific URLs 
+ instead of hosts only blocking. Just add the URLs you wish to block to
+ the block list, set the time period, and activate the block; those 
+ websites will be blocked until the timer finishes. Great for when you want 
+ to stop surfing the web and get some work done!

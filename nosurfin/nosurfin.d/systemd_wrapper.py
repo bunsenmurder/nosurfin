@@ -31,15 +31,25 @@ filter_path = join(current_dir, 'filters/blocklist.py')
 # Finds the dbus service binary
 dbus_ser = 'nosurfin/nsurlmanager'
 usr_dir = abspath(join(current_dir,'../../../..'))
+lib_usr = join(usr_dir, 'lib') #/usr/lib
+lib_root = join(usr_dir, '../lib')#/lib
+# For Fedora
+lib_usr_64 = join(usr_dir, 'lib64') #/usr/lib64
+lib_root_64 = join(usr_dir, '../lib64')#/lib64
+#For Debian and Ubunutu
 m_arch = sys.implementation._multiarch
-urlmgr_path = join(usr_dir, 'lib', dbus_ser)
+urlmgr_path = join(lib_usr, dbus_ser)
 # Compatiablilty for diffrent linux systems
 if not exists(urlmgr_path):
-    urlmgr_path = abspath(join(usr_dir, '../lib', dbus_ser))
+    urlmgr_path = abspath(join(lib_root, dbus_ser))
     if not exists(urlmgr_path):
-        urlmgr_path = abspath(join(usr_dir, 'lib', m_arch, dbus_ser))
+        urlmgr_path = abspath(join(lib_usr_64, dbus_ser))
         if not exists(urlmgr_path):
-            urlmgr_path = abspath(join(usr_dir, '../lib', m_arch, dbus_ser))
+            urlmgr_path = abspath(join(lib_root_64, dbus_ser))
+            if not exists(urlmgr_path):
+                urlmgr_path = abspath(join(lib_usr, m_arch, dbus_ser))
+                if not exists(urlmgr_path):
+                    urlmgr_path = abspath(join(lib_root, m_arch, dbus_ser))
 
 
 # Generate mitm proxy command to start the block

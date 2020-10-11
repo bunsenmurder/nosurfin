@@ -37,15 +37,15 @@ def check_p11k():
                                 "org.freedesktop.systemd1.Manager")
     p11k_state = False
     try:
-        p11k_obj_path = proxy.GetUnit('(s)', 'p11-kit-server.socket')
+        p11k_obj_path = proxy.LoadUnit('(s)', 'p11-kit-server.socket')
         proxy = ProxyFactorySync("org.freedesktop.systemd1", p11k_obj_path,
                                  "org.freedesktop.DBus.Properties")
-        p11k_state = proxy.Get('(ss)',"org.freedesktop.systemd1.Unit", 'UnitFileState')
+        p11k_state, _ = proxy.Get('(ss)',"org.freedesktop.systemd1.Socket", 'Listen')[0]
     except Exception as e:
         print(e)
         pass
 
-    if p11k_state == "enabled":
+    if p11k_state == "Stream":
         return 'p11k'
     else:
         return 'etc_ssl_certs'

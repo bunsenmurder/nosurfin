@@ -11,8 +11,19 @@ jobs:
      uses: dawidd6/action-debian-package@v1
      with:
        artifacts_directory: output
+   
+   - name: Build RPM package
+     id: rpm
+     uses: bunsenmurder/rpmbuild@v2.0.9
+     with:
+       spec_file: "nosurfin.spec"
        
    - uses: actions/upload-artifact@v2
      with:
-       name: nosurfin_deb
+       name: NoSurfin DEB
        path: /home/runner/work/nosurfin/nosurfin/output
+       
+   - uses: actions/upload-artifact@v2
+     with:
+       name: NoSurfin RPM
+       path: ${{ steps.rpm.outputs.rpm_dir_path }}
