@@ -178,10 +178,11 @@ class UrlMgrProxy(GObject.GObject):
             print(f"Error: Could not connect to urlmgr: {e.message}")
             return
 
-    def set_host_token(self, value):
+    def set_host_token(self, value, notify_obj):
         host_token = self._get_host_token()
         if host_token:
-            print('Out of Host Tokens!')
+            text = "Couldn't add to block, out of Host Tokens!"
+            notify_obj.notification(text)
             # Place notification telling user they are out of host tokens,
             #and any more added ignore hosts will be applied on next block run.
         else:

@@ -37,7 +37,6 @@ class ListEditor(Gtk.ApplicationWindow):
     def __init__(self, app, dbus_proxy, name, path):
         super().__init__(application=app, title=name.title())
         self.file_path = path / f'{name}.txt'
-        #self._main_window = m_win
         self._app=app
         self._dbus_proxy = dbus_proxy
         self._editor_type = None
@@ -71,13 +70,6 @@ class ListEditor(Gtk.ApplicationWindow):
         self._app.connect("notify::clock-active",
                                   self.check_if_clock_active)
         self.set_skip_taskbar_hint(True)
-
-        #self.style = Gtk.CssProvider()
-        # self.style.load_from_data(b'entry {border-color: Red;}')
-        # self.url_in.get_style_context().remove_provider(self.style)
-        #self.url_in.get_style_context().add_provider(self.style, 400)
-        # self.url_in.get_style_context().add_class('keycap')
-        # Class name might be box.keycap or container.keycap
 
     def check_if_clock_active(self, *args):
         if self._app.props.clock_active:
@@ -116,7 +108,7 @@ class ListEditor(Gtk.ApplicationWindow):
                     if self._editor_type == 0:
                         self._dbus_proxy.set_block_url(rule)
                     elif self._editor_type == 1:
-                        self._dbus_proxy.set_host_token(rule)
+                        self._dbus_proxy.set_host_token(rule, self._notify)
                         self.add_btn.props.sensitive = False
                 except Exception as e:
                     print(f"{e}: Could not add {rule} to list!")

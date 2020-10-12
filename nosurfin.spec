@@ -23,12 +23,7 @@ Requires:       systemd
 Requires:       gtk3
 
 %description
-Block distracting websites and take back your productivity! NoSurfin is a 
-personal web site blocker for Linux, capable of blocking specific URLs 
-instead of hosts only blocking. Just add the URLs you wish to block to
-the block list, set the time period, and activate the block; those 
-websites will be blocked until the timer finishes. Great for when you want 
-to stop surfing the web and get some work done!
+Block distracting websites and take back your productivity! NoSurfin is a personal web site blocker for Linux, capable of blocking specific URLs instead of just website hosts. Just add the URLs you wish to block to the block list, set the time period, and activate the block; those websites will be blocked until the timer finishes. Great for when you want to stop surfing the web and get some work done!
 
 %prep
 %autosetup
@@ -57,5 +52,5 @@ to stop surfing the web and get some work done!
 
 
 %changelog
-* Fri Oct  9 2020 test
+* Fri Oct  9 2020 bunsenmurder
 - Changelog can be found here: https://github.com/bunsenmurder/nosurfin
