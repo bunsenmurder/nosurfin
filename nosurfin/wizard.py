@@ -16,9 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk, GObject, Gio, GLib
-from .dbus_tools import ProxyFactorySync
-from .misc import (Notification, PageNotifier, Runner, load_new_path_cb,
-update_header, toggle_sens, gasync_task, run_gasync_task, message_dialog, toggle_sens_btns_recur)
+from .tools import Runner
+from .tools.dbus import ProxyFactorySync
+from .tools.misc import update_header, set_sens_btns_recur, set_sens
+from .tools.gasync import run_gasync_task, gasync_task
+from .tools.filechoose import check_path_invalid, open_dir
+from .notify import Notification, PageNotifier, message_dialog
 from enum import Enum
 from shutil import copy2
 from pathlib import Path
@@ -50,16 +53,6 @@ def check_p11k():
     else:
         return 'etc_ssl_certs'
 
-def check_path_invalid(p):
-    return p.is_socket()|p.is_fifo()|p.is_block_device()|p.is_char_device()
-
-def open_dir(text, func_cb):
-    file_dialog = Gtk.FileChooserNative.new(
-        text, None, Gtk.FileChooserAction.SELECT_FOLDER
-    )
-    file_dialog.connect("response", load_new_path_cb, func_cb)
-    file_dialog.run()
-
 class Action(Enum):
     NONE = 0
     VERIFY = 1
@@ -85,7 +78,7 @@ class ListBoxRow(Gtk.ListBoxRow):
         self.second_lab.set_text(label2)
         self.path = None
 
-
+#TODO: Look into GtkAssistant widget
 @Gtk.Template(resource_path="/com/github/bunsenmurder/NoSurfin/ui/CertWizard.ui")
 class CertWizard(Gtk.ApplicationWindow):
     # Set GObject things and retrieve so template objects
@@ -126,6 +119,7 @@ class CertWizard(Gtk.ApplicationWindow):
         """Initialize Application Window
 
         :param Dict path_cfg: configuration of file paths
+        :param Dict settings: configuration of file paths
         """
         ## Setting Init args to self
         self.settings = settings
@@ -261,7 +255,6 @@ class CertWizard(Gtk.ApplicationWindow):
 
     @gasync_task(method=True)
     def _recover_cert(self):
-        # Copy2 doesn't work from root, remove and rely on script only
         success = True
         flags=Gio.SubprocessFlags.STDOUT_PIPE|Gio.SubprocessFlags.STDERR_MERGE
         self._check_sys_cert_status()
@@ -284,6 +277,7 @@ class CertWizard(Gtk.ApplicationWindow):
             self._notify.notification(f"Error: {self._error_buffer}", time=0)
             self._error_buffer = None
 
+    # TODO: Convert dictionaries into a config file
     def _cert_cmd_factory(self, file_key, action: Action, dir_=None):
         if dir_ == None:
             dir_ = Path().home()
@@ -460,7 +454,7 @@ class CertWizard(Gtk.ApplicationWindow):
         self._notify.cancel()
         self._error_notify()
         self.action_box.set_sensitive(True)
-        self.certs_next_btn.get_parent().foreach(toggle_sens, True)
+        self.certs_next_btn.get_parent().foreach(set_sens, True)
         if cert_expire > 0:
             self.certs_next_btn.set_visible(True)
             self.certs_next_btn.set_sensitive(False)
@@ -701,7 +695,7 @@ class CertWizard(Gtk.ApplicationWindow):
     # Makes sure everything gets to the right destination.
     def route_cb(self, lb, lb_row=None, data=None):
         def finish_process(res, Label):
-            header = self.menu.get_parent().foreach(toggle_sens, True)
+            header = self.menu.get_parent().foreach(set_sens, True)
             # Replace with process output call
             text = 'Done'
             Label.set_markup(
@@ -723,7 +717,7 @@ class CertWizard(Gtk.ApplicationWindow):
             if data:
                 par_func_cb = data
             else:
-                self.menu.get_parent().foreach(toggle_sens, False)
+                self.menu.get_parent().foreach(set_sens, False)
                 lab = self._process.spinner('Installing Certificate to System',
                                              True)
                 par_func_cb = partial(finish_process, Label=lab)
@@ -739,7 +733,7 @@ class CertWizard(Gtk.ApplicationWindow):
                 "Install Certificates"
             )
             self.header_stack.get_child_by_name(map_entry['head']).foreach(
-                toggle_sens, False
+                set_sens, False
             )
             self.select_certs_lab.set_text(
                 "Install NoSurfin's certificate to app certificate stores."
@@ -761,7 +755,7 @@ class CertWizard(Gtk.ApplicationWindow):
                 "Remove Certificates"
             )
             self.header_stack.get_child_by_name(map_entry['head']).foreach(
-                toggle_sens, False
+                set_sens, False
             )
             self.select_certs_lab.set_text(
                 "Remove NoSurfin's certificate from system"
@@ -779,7 +773,7 @@ class CertWizard(Gtk.ApplicationWindow):
             if data:
                 par_func_cb = data
             else:
-                self.menu.get_parent().foreach(toggle_sens, False)
+                self.menu.get_parent().foreach(set_sens, False)
                 lab = self._process.spinner(
                     f"{self._prev_action.name.title()}ing certificates...",True)
                 par_func_cb = partial(finish_process, Label=lab)
@@ -857,11 +851,11 @@ class CertWizard(Gtk.ApplicationWindow):
     @Gtk.Template.Callback()
     def reset_wiz_cb(self, button):
         def reset_wiz_confirm_cb(*args):
-            toggle_sens_btns_recur(self.header_stack, False)
+            set_sens_btns_recur(self.header_stack, False)
             self.certs_remove.get_parent().set_sensitive(False)
             self._notify.spinner("Working...")
             def finishing_cb(*args):
-                toggle_sens_btns_recur(self.header_stack, True)
+                set_sens_btns_recur(self.header_stack, True)
                 self.certs_remove.get_parent().set_sensitive(True)
                 self._notify.notification("Successfully reset wizard.")
             if not self._f_index:

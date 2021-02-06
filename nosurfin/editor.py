@@ -17,7 +17,7 @@
 
 from gi.repository import Gtk
 from re import compile
-from .misc import Notification
+from .notify import Notification
 
 
 ptrn = compile(r'^$|\s')

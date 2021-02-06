@@ -17,8 +17,11 @@
 
 from gi.repository import Gtk, GObject, Gio
 from .wizard import CertWizard
-from .misc import (Notification, Runner, update_header_recursive, check_bin,
-load_new_path_cb, toggle_sens_btns_recur, message_dialog, gasync_task, run_gasync_task)
+from .notify import Notification, message_dialog
+from .tools import Runner
+from .tools.misc import update_header_recur, check_bin, set_sens_btns_recur
+from .tools.filechoose import load_new_path, open_dir
+from .tools.gasync import run_gasync_task, gasync_task
 from pathlib import Path
 from shutil import copy2, move
 from datetime import datetime as dt
@@ -69,7 +72,7 @@ class Preferences(Gtk.ApplicationWindow):
         self._wiz = None
 
         # Recursively searches self for ListBoxes and set separators
-        update_header_recursive(self.pref_stack, search_depth=6)
+        update_header_recur(self.pref_stack, search_depth=6)
 
         ## Build drop-down menus
         #Get all possible enums for keys and store in GtkListStores
@@ -147,7 +150,7 @@ class Preferences(Gtk.ApplicationWindow):
             def finish_cb(*args):
                 self._notify.notification("Done")
                 self._app.check_start_conditions_met()
-                toggle_sens_btns_recur(self, True, search_depth=11)
+                set_sens_btns_recur(self, True, search_depth=11)
             sys_cert, expire = self.settings.get_value('system-cert')
             if sys_cert and expire:
                 self._app.status['cert_instd'] = True
@@ -155,10 +158,10 @@ class Preferences(Gtk.ApplicationWindow):
                 self._wiz.reinstall_removed_certs(finish_cb)
             else:
                 self._notify.notification("Error: Could not install certificate")
-                toggle_sens_btns_recur(self, True, search_depth=11)
+                set_sens_btns_recur(self, True, search_depth=11)
             # Ensures Wizard is set back to default screen
             #self._wiz.route_cb(self._wiz.menu)
-        toggle_sens_btns_recur(self, False, search_depth=11)
+        set_sens_btns_recur(self, False, search_depth=11)
         self.wiz_cb(None, show=False)
         self._notify.spinner("Installing...")
         self._wiz.install_sys_certs(check_sys_status_cb)
@@ -194,9 +197,9 @@ class Preferences(Gtk.ApplicationWindow):
                     self.path_cfg['backend_bin'] = self._app.pipx_backend
                     self._app.check_start_conditions_met(self)
                 self._check_pipx()
-            toggle_sens_btns_recur(self, True, search_depth=11)
+            set_sens_btns_recur(self, True, search_depth=11)
             self._notify.notification("Done")
-        toggle_sens_btns_recur(self, False, search_depth=11)
+        set_sens_btns_recur(self, False, search_depth=11)
         self._notify.spinner("Installing")
         run_gasync_task(self._run_dep_man, finish_cb)
 
@@ -212,9 +215,9 @@ class Preferences(Gtk.ApplicationWindow):
                     self.settings.set_enum('python-use', 0)
                     self.path_cfg['backend_bin'] = None
                 self._check_pipx()
-            toggle_sens_btns_recur(self, True, search_depth=11)
+            set_sens_btns_recur(self, True, search_depth=11)
             self._notify.notification("Done")
-        toggle_sens_btns_recur(self, False, search_depth=11)
+        set_sens_btns_recur(self, False, search_depth=11)
         self._notify.spinner("Removing")
         par_func = partial(self._run_dep_man, install=False)
         run_gasync_task(par_func, finish_cb)
@@ -248,12 +251,12 @@ class Preferences(Gtk.ApplicationWindow):
 
     def _delete_all_certs(self, obj=None, factory_reset=True):
         lab = self._notify.spinner("Working...", stream_messages=True)
-        toggle_sens_btns_recur(self, False, search_depth=11)
+        set_sens_btns_recur(self, False, search_depth=11)
         self.wiz_cb(None, show=False)
         if factory_reset:
             def cleaner_cb(*args):
                 def finish_cb(*args):
-                    toggle_sens_btns_recur(self, True, search_depth=11)
+                    set_sens_btns_recur(self, True, search_depth=11)
                     self._notify.cancel()
                     self.settings.reset('added-dirs')
                     self.settings.reset('banned-dirs')
@@ -292,7 +295,8 @@ class Preferences(Gtk.ApplicationWindow):
             else:
                 self._notify.notification(f"Cannot export to {path} don't have write permissions.")
 
-        self.open_dir(export_list, text="Select a Folder to Export to")
+        open_dir("Select a Folder to Export to", export_list)
+
     # TODO: Add an option for recovery of old list files.
     @Gtk.Template.Callback()
     def import_list_cb(self, button):
@@ -309,7 +313,7 @@ class Preferences(Gtk.ApplicationWindow):
             except Exception as e:
                 self._notify.notification(f"Error: {e}")
 
-        self.open_dir(import_list, text="Select a File to Import", export=False)
+        self.import_file("Select a block list to Import", import_list)
 
     @Gtk.Template.Callback()
     def import_ign_list_cb(self, button):
@@ -326,20 +330,13 @@ class Preferences(Gtk.ApplicationWindow):
             except Exception as e:
                 self._notify.notification(f"Error: {e}")
 
-        self.open_dir(import_list, text="Select a File to Import", export=False)
+        self.import_file("Select a ignore list to Import", import_list)
 
-    def open_dir(self, cb, text, export=True):
-        acc_lab=None
-        action = Gtk.FileChooserAction.SELECT_FOLDER
-        if not export:
-            acc_lab="Import"
-            action = Gtk.FileChooserAction.OPEN
-
-        file_dialog = Gtk.FileChooserNative.new(text, self, action, acc_lab)
-        if not export:
-            filter_ = Gtk.FileFilter.new()
-            filter_.set_name("Text Files")
-            filter_.add_pattern("*.txt")
-            file_dialog.set_filter(filter_)
-        file_dialog.connect("response", load_new_path_cb, cb)
-        file_dialog.run()
+    def import_file(self, text, cb):
+        # Adds a text file filter and changes behavior of file chooser dialog
+        file_dia = open_dir(text, cb, "Import", openf=True, return_obj=True)
+        filter_ = Gtk.FileFilter.new()
+        filter_.set_name("Text Files")
+        filter_.add_pattern("*.txt")
+        file_dia.set_filter(filter_)
+        file_dia.run()

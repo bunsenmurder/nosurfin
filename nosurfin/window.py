@@ -23,10 +23,8 @@ from .home import HomePage
 
 @Gtk.Template(resource_path="/com/github/bunsenmurder/NoSurfin/ui/Window.ui")
 class AppWindow(Gtk.ApplicationWindow):
-    """AppWindow object
-
-    Starts the application window which could contains either home page or
-    contains a timer clock.
+    """The class represents the main application window, which shows either the
+    home page or the timer clock.
     """
     __gtype_name__ = "Window"
     __gsignals__ = {
@@ -41,7 +39,7 @@ class AppWindow(Gtk.ApplicationWindow):
         super().__init__(application=app, *args, **kwargs)
         """Initialize Application Window
 
-        :param Application app: Application instance object
+        :param Gtk.Application app: Parent GtkApplication instance
         """
         theme_classes = {
             0: ['clock_frame_1'],
@@ -55,8 +53,10 @@ class AppWindow(Gtk.ApplicationWindow):
         self.check_for_block()
 
     def check_for_block(self, file="/etc/systemd/system/stop_ns_block.timer"):
-        """Checks for existing time block and
-        routes to the appropriate screen. """
+        """Checks for existing time block and routes to the appropriate screen.
+
+        :param str file: Location of block systemd timer file.
+        """
         try:
             with open(file) as f:
                 for line in f:

@@ -23,8 +23,10 @@ from collections import OrderedDict
 from .window import AppWindow
 from .editor import ListEditor
 from .preferences import Preferences
-from .dbus_tools import CatchSleep, UrlMgrProxy
-from .misc import Runner, check_bin, message_dialog, toggle_sens_btns_recur
+from .tools import Runner
+from .tools.dbus import CatchSleep, UrlMgrProxy
+from .tools.misc import check_bin, set_sens_btns_recur
+from .notify import message_dialog
 from datetime import datetime, timedelta
 
 
@@ -144,7 +146,7 @@ class Application(Gtk.Application):
 
         if not self.props.clock_active:
             if not stat['backend_set'] or not stat['cert_instd']:
-                toggle_sens_btns_recur(self.window.page_stack, False, vis=True)
+                set_sens_btns_recur(self.window.page_stack, False, vis=True)
             self.check_start_conditions_met()
 
     def cert_expire_check(self, expire):
@@ -208,13 +210,13 @@ class Application(Gtk.Application):
             if stat['cert_bad']:
                 exp = ("NoSurfin's SSL certificate has expired and cannot "
                         "run without it.")
-                toggle_sens_btns_recur(self.window.page_stack, False, vis=True)
+                set_sens_btns_recur(self.window.page_stack, False, vis=True)
             text = (" Would you like to reinstall it now? If not, please install"
                     " it before the expiration with the Certificate Wizard.")
             text = exp + text
             message_dialog(None, text, yes_cb, no_cb, yes_no=True)
         if stat['backend_set'] & stat['cert_instd'] and not stat['cert_bad']:
-            toggle_sens_btns_recur(self.window.page_stack, True, vis=True)
+            set_sens_btns_recur(self.window.page_stack, True, vis=True)
             if self._pref_win:
                 self._pref_win.destroy()
 

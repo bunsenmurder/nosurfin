@@ -1,4 +1,4 @@
-# dbus_tools.py
+# dbus.py
 #
 # Copyright 2020 bunsenmurder
 #
@@ -19,6 +19,12 @@ import os
 from gi.repository import GLib, Gio, GObject
 
 def ProxyFactorySync(name, path, iface):
+    """ Function that returns a synchronous DBusProxy object.
+
+    :param str name: The Bus(well-known) name.
+    :param str path: The object_path.
+    :param str iface: The D-Bus interface name.
+    """
     print(f"Finalizing D-Bus proxy connection to {path}")
     try:
         proxy = Gio.DBusProxy.new_for_bus_sync(
@@ -33,7 +39,15 @@ def ProxyFactorySync(name, path, iface):
         return
     return proxy
 
+# Currently not used
 class ProxyFactory(GObject.GObject):
+    """ Generic DBusProxy factory class, which emits a proxy_done signal once
+    proxy connection is established.
+
+    :param str name: The Bus(well-known) name.
+    :param str path: The object_path.
+    :param str iface: The D-Bus interface name.
+    """
     __gsignals__ = {'proxy_done':(GObject.SignalFlags.RUN_LAST, GObject.TYPE_OBJECT, (GObject.TYPE_OBJECT,))}
     def __init__(self, name, path, iface):
         super().__init__()
@@ -70,6 +84,13 @@ class ProxyFactory(GObject.GObject):
 
 
 class CatchSleep(GObject.GObject):
+    """ Class that detects when the computer has fallen asleep and resets the
+    countdown clock based on signal it receives from the
+    org.freedesktop.login1.Manager interface.
+
+    :param Gtk.Application app: The main GtkApplication instance.
+    :param Gtk.ApplicationWindow window: The main NoSurfin window.
+    """
     def __init__(self, app, window):
         super().__init__()
         self._app = app

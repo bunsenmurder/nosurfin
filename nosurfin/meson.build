@@ -54,12 +54,12 @@ nosurfin_sources = [
   'window.py',
   'clock.py',
   'home.py',
-  'dbus_tools.py',
   'editor.py',
   'preferences.py',
-  'misc.py',
-  'wizard.py'
+  'wizard.py',
+  'notify.py',
 ]
 
 install_data(nosurfin_sources, install_dir: moduledir)
 install_subdir('nosurfin.d', install_dir: moduledir)
+install_subdir('tools', install_dir: moduledir)

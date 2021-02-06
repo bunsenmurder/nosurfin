@@ -80,7 +80,7 @@ async def signal_listen(loader, ignore_list):
                 HostAddedStatus = True
                 nonlocal loader
                 nonlocal ignore_list
-                ignore_list.append(f'{value.rstrip()}:443')
+                ignore_list.append(f'{value.rstrip().lower()}:443')
                 loader.master.server.config.check_filter = \
                     HostMatcher("ignore", ignore_list)
         elif prop == 'Url':
@@ -110,7 +110,7 @@ def load(loader):
         if isinstance(blocklist_path, str) and True:
             with open(blocklist_path, "r") as f:
                 for line in f:
-                    blocklist.append(line.rstrip())
+                    blocklist.append(line.rstrip().lower())
     if 'ignorehostlist' in loader.master.options.deferred:
         # TODO: Look into domain/ip validation for ignore list
         # TODO: Add regex patterns for more efficient pattern matching
@@ -131,5 +131,6 @@ def load(loader):
 # This decorator allows concurrent blocking request interception
 @concurrent
 def request(flow):
-    if any(url in flow.request.pretty_url for url in blocklist):
+    pretty_url = flow.request.pretty_url.lower()
+    if any(url in pretty_url for url in blocklist):
         flow.response = block_response
