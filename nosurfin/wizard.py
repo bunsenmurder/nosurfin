@@ -407,18 +407,18 @@ class CertWizard(Gtk.ApplicationWindow):
             self.select_certs_lb.insert(row, pos)
         file_key, cert_expire = self.settings.get_value('system-cert')
         if self.show_system_cert:
-            def del_sys(cb, *args):
+            def del_sys(ca, *args):
                 def yes_cb():
                     pass
                 def no_cb():
-                    cb.set_active(False)
+                    ca.set_active(False)
                     self.selected_cb()
                 text = \
                     ("The System Certificate and all currently installed "
                     " certificates will need be reinstalled next time you "
                     " open NoSurfin. Do you still wish to uninstall the"
                     " System Certificate?")
-                if cb.get_active():
+                if ca.get_active():
                     message_dialog(self, text, yes_cb, no_cb, yes_no=True)
 
             if cert_expire > 0 and installed:
@@ -524,19 +524,19 @@ class CertWizard(Gtk.ApplicationWindow):
                     file_key = f'{db.parent.name}/{db.name}'
                 self._check_cert_status(db, file_key)
 
-            #cb_sufx = ['.pem', '.crt']
-            #search = [cb for cb in dir_.rglob('*cert*.[c-p][e-r][m-t]')
-            #           if cb.suffix in cb_sufx and
+            #ca_sufx = ['.pem', '.crt']
+            #search = [ca for ca in dir_.rglob('*cert*.[c-p][e-r][m-t]')
+            #           if ca.suffix in ca_sufx and
 
             # ca = cert bundle
-            search = [cb for cb in dir_.rglob('*cert*.pem')
-                        if 'mitm' not in cb.name.lower() and
-                        'private' not in cb.name.lower() and
-                        'test' not in str(cb).lower()]
-            search.sort(key=lambda cb: (-len(str(cb)), str(cb)), reverse=True)
-            for cb in search:
-                file_key = cb.suffix
-                self._check_pem_status(cb, file_key)
+            search = [ca for ca in dir_.rglob('*cert*.pem')
+                        if 'mitm' not in ca.name.lower() and
+                        'private' not in ca.name.lower() and
+                        'test' not in str(ca).lower()]
+            search.sort(key=lambda ca: (-len(str(ca)), str(ca)), reverse=True)
+            for ca in search:
+                file_key = ca.suffix
+                self._check_pem_status(ca, file_key)
 
         def index(list_):
             for d in list_:

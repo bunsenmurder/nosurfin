@@ -230,6 +230,7 @@ class Preferences(Gtk.ApplicationWindow):
             self._wiz = CertWizard(self.path_cfg, self.settings)
             self._wiz.connect("destroy", set_none_cb)
             self._wiz.set_transient_for(self)
+            self._check_if_clock_active()
         if show:
             self._wiz.present()
             if not self._app.status['cert_instd']:

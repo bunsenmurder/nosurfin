@@ -98,6 +98,7 @@ class Application(Gtk.Application):
             ('prefs', self.on_settings, None, None)
         ]
         # Generate menu from list of menu entries
+        # a=action, cb=callback,acc=accelerator, data=data (pass to callback)
         for a, cb, acc, data in menu_entries:
             action = Gio.SimpleAction.new(a, None)
             # Checks for data to pass to callback
